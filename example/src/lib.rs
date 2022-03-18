@@ -80,7 +80,7 @@ pub async fn async_hello_world() -> Result<u8> {
 }
 
 #[derive(Debug)]
-struct CustomType {
+pub struct CustomType {
     n: i32,
 }
 
@@ -88,6 +88,10 @@ impl CustomType {
     fn get_n(&self) -> i32 {
         self.n
     }
+}
+
+pub fn create_custom_type(n: i32) -> CustomType {
+    CustomType { n }
 }
 
 fn create_list() -> Vec<CustomType> {
@@ -113,4 +117,63 @@ fn ss() -> Vec<String> {
         .iter()
         .map(|s| s.to_string())
         .collect()
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct Vector2 {
+    x: u64,
+    y: u64,
+}
+
+impl Vector2 {
+    pub fn x(&self) -> u64 {
+        self.x
+    }
+    pub fn y(&self) -> u64 {
+        self.y
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct Vector3 {
+    x: u64,
+    y: u64,
+    z: u64,
+}
+
+impl Vector3 {
+    pub fn x(&self) -> u64 {
+        self.x
+    }
+    pub fn y(&self) -> u64 {
+        self.y
+    }
+    pub fn z(&self) -> u64 {
+        self.z
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum Shape {
+    Square(Vector2),
+    Cube(Vector3),
+    None,
+}
+
+fn get_shape() -> Shape {
+    Shape::Square(Vector2 { x: 0, y: 5 })
+}
+
+fn get_shapes() -> Vec<Shape> {
+    use Shape::*;
+    vec![
+        Square(Vector2 { x: 5, y: 3 }),
+        None,
+        Cube(Vector3 { x: 4, y: 0, z: 1 }),
+        Square(Vector2 { x: 5, y: 3 }),
+        None,
+        None,
+        Square(Vector2 { x: 5, y: 3 }),
+        Cube(Vector3 { x: 4, y: 0, z: 1 }),
+    ]
 }
