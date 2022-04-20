@@ -431,7 +431,9 @@ impl Interface {
             }
         }
 
-        res.into_iter().collect()
+        let mut fin: Vec<String> = res.into_iter().collect();
+        fin.sort();
+        fin
     }
 
     pub fn imports(&self, abi: &Abi) -> Vec<import::Import> {
