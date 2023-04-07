@@ -627,6 +627,7 @@ impl DartGenerator {
         match &func.ty {
             FunctionType::Constructor(_object) => quote! {
                 #doc
+                @pragma("vm:entry-point")
                 static #ret #name(Api api, #args) {
                     #body
                 }
@@ -634,6 +635,7 @@ impl DartGenerator {
             _ => {
                 quote! {
                     #doc
+                    @pragma("vm:entry-point")
                     #ret #name(#args) {
                         #body
                     }
