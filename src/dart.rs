@@ -928,7 +928,7 @@ impl DartGenerator {
     fn generate_return_struct(&self, ret: &Return) -> dart::Tokens {
         if let Return::Struct(vars, name) = ret {
             quote! {
-                class #(format!("_{}", self.type_ident(name))) extends ffi.Struct {
+                final class #(format!("_{}", self.type_ident(name))) extends ffi.Struct {
                     #(for (i, var) in vars.iter().enumerate() => #(self.generate_return_struct_field(i, var.ty.num())))
                 }
             }
