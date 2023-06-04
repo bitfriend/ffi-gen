@@ -86,7 +86,9 @@ compile_pass_no_js! {
     fn has_been_dropped(idx: usize) -> bool;
     ",
     (
-        use std::sync::{Mutex, SyncLazy};
+        use std::sync::Mutex;
+        #![feature(once_cell)]
+        use std::lazy::SyncLazy;
 
         const COUNT: usize = 5;
         static DROP_FLAGS: SyncLazy<Mutex<Vec<bool>>> = SyncLazy::new(|| Mutex::new(vec![false; COUNT]));
