@@ -36,12 +36,12 @@ impl DartGenerator {
             import "dart:isolate";
             import "dart:typed_data";
 
-            class _DartApiEntry extends ffi.Struct {
+            final class _DartApiEntry extends ffi.Struct {
                 external ffi.Pointer<ffi.Uint8> name;
                 external ffi.Pointer<ffi.Void> ptr;
             }
 
-            class _DartApi extends ffi.Struct {
+            final class _DartApi extends ffi.Struct {
                 @ffi.Int32()
                 external int major;
 
@@ -247,7 +247,7 @@ impl DartGenerator {
               }
             }
 
-            class _FfiStringParts extends ffi.Struct {
+            final class _FfiStringParts extends ffi.Struct {
               @ffi.Int64()
               external int addr;
               @ffi.Uint64()
@@ -256,7 +256,7 @@ impl DartGenerator {
               external int capacity;
             }
 
-            class _EnumWrapper extends ffi.Struct {
+            final class _EnumWrapper extends ffi.Struct {
                 @ffi.Uint32()
                 external int tag;
                 @ffi.IntPtr()
