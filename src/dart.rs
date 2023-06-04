@@ -645,7 +645,7 @@ impl DartGenerator {
     fn generate_ffi_buffer(&self, ty: &str) -> dart::Tokens {
         let bytes = ty
             .chars()
-            .skip_while(|&c| !c.is_digit(10))
+            .skip_while(|&c| !c.is_ascii_digit())
             .collect::<String>()
             .parse::<u32>()
             .unwrap()
@@ -866,8 +866,8 @@ impl DartGenerator {
             AbiType::RefSlice(ty) | AbiType::Vec(ty) => {
                 quote!(List<#(self.generate_wrapped_num_type(*ty))>)
             }
-            AbiType::Option(ty) => quote!(#(self.generate_type(&**ty))?),
-            AbiType::Result(ty) => self.generate_type(&**ty),
+            AbiType::Option(ty) => quote!(#(self.generate_type(ty))?),
+            AbiType::Result(ty) => self.generate_type(ty),
             AbiType::Tuple(tuple) => match tuple.len() {
                 0 => quote!(void),
                 1 => self.generate_type(&tuple[0]),
