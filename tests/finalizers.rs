@@ -86,6 +86,7 @@ compile_pass_no_js! {
     fn has_been_dropped(idx: usize) -> bool;
     ",
     (
+        #![feature(lazy_cell)]
         use std::sync::{LazyLock, Mutex};
 
         const COUNT: usize = 5;
