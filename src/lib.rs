@@ -59,7 +59,7 @@ impl FfiGen {
     ) -> Result<()> {
         let dart = DartGenerator::new(library.to_string(), cdylib.to_string());
         let dart = dart.generate(self.iface.clone()).to_file_string()?;
-        std::fs::write(path.as_ref(), &dart)?;
+        std::fs::write(path.as_ref(), dart)?;
         let status = Command::new(if cfg!(windows) { "dart.bat" } else { "dart" })
             .arg("format")
             .arg(path.as_ref())
@@ -75,7 +75,7 @@ impl FfiGen {
     pub fn generate_js<P: AsRef<Path>>(&self, path: P) -> Result<()> {
         let js = JsGenerator::default();
         let js = js.generate(self.iface.clone()).to_file_string()?;
-        std::fs::write(path.as_ref(), &js)?;
+        std::fs::write(path.as_ref(), js)?;
         let status = Command::new("prettier")
             .arg("--write")
             .arg(path.as_ref())
@@ -91,7 +91,7 @@ impl FfiGen {
     pub fn generate_ts<P: AsRef<Path>>(&self, path: P) -> Result<()> {
         let ts = TsGenerator::default();
         let ts = ts.generate(self.iface.clone()).to_file_string()?;
-        std::fs::write(path.as_ref(), &ts)?;
+        std::fs::write(path.as_ref(), ts)?;
         let status = Command::new("prettier")
             .arg("--write")
             .arg(path.as_ref())
