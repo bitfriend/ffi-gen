@@ -86,11 +86,11 @@ compile_pass_no_js! {
     fn has_been_dropped(idx: usize) -> bool;
     ",
     (
-        use std::sync::{LazyLock, Mutex};
+        use once_cell::sync::Lazy;
+        use std::sync::Mutex;
 
-        type F = impl FnOnce() -> ();
         const COUNT: usize = 5;
-        static DROP_FLAGS: LazyLock<Mutex<Vec<bool>>, F> = LazyLock::new(|| Mutex::new(vec![false; COUNT]));
+        static DROP_FLAGS: Lazy<Mutex<Vec<bool>>> = Lazy::new(|| Mutex::new(vec![false; COUNT]));
 
         #[derive(Debug, Clone)]
         pub struct Obj {
