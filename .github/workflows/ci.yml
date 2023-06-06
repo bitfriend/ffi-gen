@@ -22,7 +22,7 @@ jobs:
       with:
         channel: nightly
 
-    - uses: dart-lang/setup-dart@bd8bef0960777f45de11f484bcb7beacadb321cf
+    - uses: dart-lang/setup-dart@a26e6d85971a8fe86d8e574311349dc7f73b3b98
       with:
         sdk: 2.19.6
 
