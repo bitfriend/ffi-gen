@@ -555,7 +555,7 @@ use std::path::PathBuf;
 
 fn canonical_path(path: String) -> String {
     let dir = PathBuf::from(path.as_str());
-    fs::canonicalize(&dir)
+    fs::canonicalize(dir)
         .unwrap()
         .to_string_lossy()
         .to_string()
