@@ -261,7 +261,7 @@ impl Abi {
                 let var = gen.gen_num(NumType::U8);
                 ffi_rets.push(var.clone());
                 instr.push(Instr::HandleNull(var));
-                self.import_return(symbol, &**ty, out, gen, ffi_rets, instr);
+                self.import_return(symbol, ty, out, gen, ffi_rets, instr);
             }
             AbiType::Result(ty) => {
                 let var = gen.gen_num(NumType::U8);
@@ -270,7 +270,7 @@ impl Abi {
                 let cap = gen.gen_num(self.uptr());
                 ffi_rets.extend_from_slice(&[var.clone(), ptr.clone(), len.clone(), cap.clone()]);
                 instr.push(Instr::HandleError(var, ptr, len, cap));
-                self.import_return(symbol, &**ty, out, gen, ffi_rets, instr);
+                self.import_return(symbol, ty, out, gen, ffi_rets, instr);
             }
             AbiType::RefIter(_) => todo!(),
             AbiType::Iter(_) => {

@@ -550,6 +550,14 @@ compile_pass_no_js! {
     )
 }
 
+use std::fs;
+use std::path::PathBuf;
+
+fn canonical_path(path: String) -> String {
+    let dir = PathBuf::from(path.as_str());
+    fs::canonicalize(dir).unwrap().to_string_lossy().to_string()
+}
+
 compile_pass_no_js! {
     read_file,
     "
@@ -563,7 +571,7 @@ compile_pass_no_js! {
     ),
     (),
     (
-        final path = "../../../example/dart/image.jpg";
+        final path = #_(#(crate::canonical_path("example/dart/image.jpg".to_string())));
         final img1 = await new File(path).readAsBytes();
         final img2 = await api.readFile(path);
         assert(img1.equals(img2.asTypedList()));

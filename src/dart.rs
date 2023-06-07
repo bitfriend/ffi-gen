@@ -54,7 +54,8 @@ impl DartGenerator {
             ffi.Pointer<T> _lookupDartSymbol<T extends ffi.NativeType>(String symbol) {
                 final ffi.Pointer<_DartApi> api = ffi.NativeApi.initializeApiDLData.cast();
                 final ffi.Pointer<_DartApiEntry> functions = api.ref.functions;
-                for (var i = 0; i < 100; i++) {
+                final maxInt = double.maxFinite.toInt();
+                for (var i = 0; i < maxInt; i++) {
                     final func = functions.elementAt(i).ref;
                     var symbol2 = "";
                     var j = 0;
@@ -645,7 +646,7 @@ impl DartGenerator {
     fn generate_ffi_buffer(&self, ty: &str) -> dart::Tokens {
         let bytes = ty
             .chars()
-            .skip_while(|&c| !c.is_digit(10))
+            .skip_while(|&c| !c.is_ascii_digit())
             .collect::<String>()
             .parse::<u32>()
             .unwrap()
@@ -866,8 +867,8 @@ impl DartGenerator {
             AbiType::RefSlice(ty) | AbiType::Vec(ty) => {
                 quote!(List<#(self.generate_wrapped_num_type(*ty))>)
             }
-            AbiType::Option(ty) => quote!(#(self.generate_type(&**ty))?),
-            AbiType::Result(ty) => self.generate_type(&**ty),
+            AbiType::Option(ty) => quote!(#(self.generate_type(ty))?),
+            AbiType::Result(ty) => self.generate_type(ty),
             AbiType::Tuple(tuple) => match tuple.len() {
                 0 => quote!(void),
                 1 => self.generate_type(&tuple[0]),
@@ -1048,7 +1049,7 @@ pub mod test_runner {
         let iface = Interface::parse(iface)?;
         let (mut rust_file, rust_file_path) = NamedTempFile::new()?.keep()?;
         writeln!(rust_file, "#![feature(vec_into_raw_parts)]")?;
-        writeln!(rust_file, "#![feature(once_cell)]")?;
+        writeln!(rust_file, "#![feature(lazy_cell)]")?;
         let rust_gen = RustGenerator::new(Abi::native());
         let rust_tokens = rust_gen.generate(iface.clone());
         let (mut dart_file, dart_file_path) = NamedTempFile::new()?.keep()?;
