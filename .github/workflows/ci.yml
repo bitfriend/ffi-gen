@@ -22,9 +22,9 @@ jobs:
       with:
         channel: nightly
 
-    - uses: dart-lang/setup-dart@77b84bec90e9a0d07f68a3cedd3651ba9e606a12
+    - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
       with:
-        sdk: 2.19.6
+        sdk: 2.16
 
     - run: npm i -g prettier
     - run: cargo install --git https://github.com/vmx/wasm-multi-value-reverse-polyfill --locked
