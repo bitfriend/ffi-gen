@@ -157,24 +157,24 @@ impl DartGenerator {
             }
 
             abstract class CustomIterable<T> {
-              int get length;
-              T elementAt(int index);
+                int get length;
+                T elementAt(int index);
             }
 
             class CustomIterator<T, U extends CustomIterable<T>> implements Iterator<T> {
-              final U _iterable;
-              int _currentIndex = -1;
+                final U _iterable;
+                int _currentIndex = -1;
 
-              CustomIterator(this._iterable);
+                CustomIterator(this._iterable);
 
-              @override
-              T get current => _iterable.elementAt(_currentIndex);
+                @override
+                T get current => _iterable.elementAt(_currentIndex);
 
-              @override
-              bool moveNext() {
-                _currentIndex++;
-                return _currentIndex < _iterable.length;
-              }
+                @override
+                bool moveNext() {
+                    _currentIndex++;
+                    return _currentIndex < _iterable.length;
+                }
             }
 
             Future<T> _nativeFuture<T>(_Box box, T? Function(int, int, int) nativePoll) {
@@ -230,36 +230,36 @@ impl DartGenerator {
             }
 
             class FfiString {
-              final Api _api;
-              final _Box _box;
+                final Api _api;
+                final _Box _box;
 
-              FfiString._(this._api, this._box);
+                FfiString._(this._api, this._box);
 
-              String toDartString() {
-                final parts = _api._ffiStringIntoParts(_box.borrow());
-                final ffi.Pointer<ffi.Uint8> tmp2_0 = ffi.Pointer.fromAddress(parts.addr);
-                final tmp1 = utf8.decode(tmp2_0.asTypedList(parts.len));
-                if (parts.capacity > 0) {
-                  final ffi.Pointer<ffi.Void> tmp2_0;
-                  tmp2_0 = ffi.Pointer.fromAddress(parts.addr);
-                  _api.__deallocate(tmp2_0, parts.capacity * 1, 1);
+                String toDartString() {
+                    final parts = _api._ffiStringIntoParts(_box.borrow());
+                    final ffi.Pointer<ffi.Uint8> tmp2_0 = ffi.Pointer.fromAddress(parts.addr);
+                    final tmp1 = utf8.decode(tmp2_0.asTypedList(parts.len));
+                    if (parts.capacity > 0) {
+                        final ffi.Pointer<ffi.Void> tmp2_0;
+                        tmp2_0 = ffi.Pointer.fromAddress(parts.addr);
+                        _api.__deallocate(tmp2_0, parts.capacity * 1, 1);
+                    }
+                    return tmp1;
                 }
-                return tmp1;
-              }
 
-              #(static_literal("///")) Manually drops the object and unregisters the FinalizableHandle.
-              void drop() {
-                _box.drop();
-              }
+                #(static_literal("///")) Manually drops the object and unregisters the FinalizableHandle.
+                void drop() {
+                    _box.drop();
+                }
             }
 
             class _FfiStringParts extends ffi.Struct {
-              @ffi.Int64()
-              external int addr;
-              @ffi.Uint64()
-              external int len;
-              @ffi.Uint64()
-              external int capacity;
+                @ffi.Int64()
+                external int addr;
+                @ffi.Uint64()
+                external int len;
+                @ffi.Uint64()
+                external int capacity;
             }
 
             class _EnumWrapper extends ffi.Struct {
@@ -372,7 +372,7 @@ impl DartGenerator {
                     int Function(int)>();
 
                 late final _ffiStringIntoPartsPtr =
-                _lookup<ffi.NativeFunction<_FfiStringParts Function(ffi.IntPtr)>>("__ffi_string_into_parts");
+                    _lookup<ffi.NativeFunction<_FfiStringParts Function(ffi.IntPtr)>>("__ffi_string_into_parts");
 
                 late final _ffiStringIntoParts = _ffiStringIntoPartsPtr.asFunction<_FfiStringParts Function(int)>();
 
