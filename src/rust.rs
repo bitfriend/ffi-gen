@@ -347,7 +347,8 @@ impl RustGenerator {
             #[no_mangle]
             pub extern "C" fn #(format!("drop_box_{}", name))(_: i64, boxed: i64) {
                 panic_abort(move || unsafe {
-                    Box::<Vec<#ty>>::from_raw(boxed as _);
+                    // Box::<Vec<#ty>>::from_raw(boxed as _);
+                    // FIXME: we will just leak these for now
                 })
             }
 

@@ -118,9 +118,15 @@ impl DartGenerator {
                         throw StateError("can't drop moved value");
                     }
                     _dropped = true;
+                    print("would drop box. won't drop");
+                    return;
                     _api._unregisterFinalizer(this);
                     _drop(ffi.Pointer.fromAddress(0), _ptr);
                 }
+            }
+
+            void debugAllocation(String name, int address, int len) {
+                print(#(static_literal("\"$name - address: $address ; len: $len\"")));
             }
 
             #(for ty in "Int8 Uint8 Int16 Uint16 Int32 Uint32 Int64 Uint64 Float32 Float64".split(' ') => #(self.generate_ffi_buffer(ty)))
@@ -238,6 +244,7 @@ impl DartGenerator {
                 String toDartString() {
                     final parts = _api._ffiStringIntoParts(_box.borrow());
                     final ffi.Pointer<ffi.Uint8> tmp2_0 = ffi.Pointer.fromAddress(parts.addr);
+                    debugAllocation("ffistring", parts.addr, parts.len);
                     final tmp1 = utf8.decode(tmp2_0.asTypedList(parts.len));
                     if (parts.capacity > 0) {
                         final ffi.Pointer<ffi.Void> tmp2_0;
@@ -737,6 +744,8 @@ impl DartGenerator {
             Instr::LowerString(in_, ptr, len, cap, size, align) => quote! {
                 final #(self.var(in_))_0 = utf8.encode(#(self.var(in_)));
                 #(self.var(len)) = #(self.var(in_))_0.length;
+                debugAllocation("lower string", #(self.var(ptr)), #(self.var(len)));
+
                 final ffi.Pointer<ffi.Uint8> #(self.var(ptr))_0 =
                     #api.__allocate(#(self.var(len)) * #(*size), #(*align));
                 final Uint8List #(self.var(ptr))_1 = #(self.var(ptr))_0.asTypedList(#(self.var(len)));
@@ -745,11 +754,24 @@ impl DartGenerator {
                 #(self.var(cap)) = #(self.var(len));
             },
             Instr::LiftString(ptr, len, out) => quote! {
-                final ffi.Pointer<ffi.Uint8> #(self.var(ptr))_0 = ffi.Pointer.fromAddress(#(self.var(ptr)));
-                final #(self.var(out)) = utf8.decode(#(self.var(ptr))_0.asTypedList(#(self.var(len))));
+                if (#(self.var(len)) == 0) {
+                    print("returning empty string");
+                    return "empty string";
+                }
+                debugAllocation("lift string", #(self.var(ptr)), #(self.var(len)));
+                final utf8Decoder = utf8.decoder;
+                final ffi.Pointer<ffi.Uint8> #(self.var(ptr))_ptr = ffi.Pointer.fromAddress(#(self.var(ptr)));
+                List<int> #(self.var(ptr))_buf = [];
+                final #(self.var(ptr))_precast = #(self.var(ptr))_ptr.cast<ffi.Uint8>();
+                for (int i = 0; i < #(self.var(len)); i++) {
+                    int char = #(self.var(ptr))_precast.elementAt(i).value;
+                    #(self.var(ptr))_buf.add(char);
+                }
+                final #(self.var(out)) = utf8Decoder.convert(#(self.var(ptr))_buf);
             },
             Instr::LowerVec(in_, ptr, len, cap, ty, size, align) => quote! {
                 #(self.var(len)) = #(self.var(in_)).length;
+                debugAllocation("lower vec", #(self.var(ptr)), #(self.var(len)));
                 final ffi.Pointer<#(self.generate_native_num_type(*ty))> #(self.var(ptr))_0 =
                     #api.__allocate(#(self.var(len)) * #(*size), #(*align));
                 final #(self.var(ptr))_1 = #(self.var(ptr))_0.asTypedList(#(self.var(len)));
@@ -758,6 +780,7 @@ impl DartGenerator {
                 #(self.var(cap)) = #(self.var(len));
             },
             Instr::LiftVec(ptr, len, out, ty) => quote! {
+                debugAllocation("lift vec", #(self.var(ptr)), #(self.var(len)));
                 final ffi.Pointer<#(self.generate_native_num_type(*ty))> #(self.var(ptr))_0 =
                     ffi.Pointer.fromAddress(#(self.var(ptr)));
                 final #(self.var(out)) = #(self.var(ptr))_0.asTypedList(#(self.var(len))).toList();
@@ -796,6 +819,7 @@ impl DartGenerator {
             },
             Instr::HandleError(var, ptr, len, cap) => quote! {
                 if (#(self.var(var)) == 0) {
+                    debugAllocation("handle error", #(self.var(ptr)), #(self.var(len)));
                     final ffi.Pointer<ffi.Uint8> #(self.var(ptr))_0 = ffi.Pointer.fromAddress(#(self.var(ptr)));
                     final #(self.var(var))_0 = utf8.decode(#(self.var(ptr))_0.asTypedList(#(self.var(len))));
                     if (#(self.var(len)) > 0) {
