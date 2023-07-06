@@ -118,7 +118,6 @@ impl DartGenerator {
                         throw StateError("can't drop moved value");
                     }
                     _dropped = true;
-                    print("would drop box. won't drop");
                     return;
                     _api._unregisterFinalizer(this);
                     _drop(ffi.Pointer.fromAddress(0), _ptr);
@@ -744,7 +743,6 @@ impl DartGenerator {
             Instr::LowerString(in_, ptr, len, cap, size, align) => quote! {
                 final #(self.var(in_))_0 = utf8.encode(#(self.var(in_)));
                 #(self.var(len)) = #(self.var(in_))_0.length;
-                debugAllocation("lower string", #(self.var(ptr)), #(self.var(len)));
 
                 final ffi.Pointer<ffi.Uint8> #(self.var(ptr))_0 =
                     #api.__allocate(#(self.var(len)) * #(*size), #(*align));
@@ -756,9 +754,8 @@ impl DartGenerator {
             Instr::LiftString(ptr, len, out) => quote! {
                 if (#(self.var(len)) == 0) {
                     print("returning empty string");
-                    return "empty string";
+                    return "";
                 }
-                debugAllocation("lift string", #(self.var(ptr)), #(self.var(len)));
                 final utf8Decoder = utf8.decoder;
                 final ffi.Pointer<ffi.Uint8> #(self.var(ptr))_ptr = ffi.Pointer.fromAddress(#(self.var(ptr)));
                 List<int> #(self.var(ptr))_buf = [];
@@ -771,7 +768,6 @@ impl DartGenerator {
             },
             Instr::LowerVec(in_, ptr, len, cap, ty, size, align) => quote! {
                 #(self.var(len)) = #(self.var(in_)).length;
-                debugAllocation("lower vec", #(self.var(ptr)), #(self.var(len)));
                 final ffi.Pointer<#(self.generate_native_num_type(*ty))> #(self.var(ptr))_0 =
                     #api.__allocate(#(self.var(len)) * #(*size), #(*align));
                 final #(self.var(ptr))_1 = #(self.var(ptr))_0.asTypedList(#(self.var(len)));
@@ -780,7 +776,6 @@ impl DartGenerator {
                 #(self.var(cap)) = #(self.var(len));
             },
             Instr::LiftVec(ptr, len, out, ty) => quote! {
-                debugAllocation("lift vec", #(self.var(ptr)), #(self.var(len)));
                 final ffi.Pointer<#(self.generate_native_num_type(*ty))> #(self.var(ptr))_0 =
                     ffi.Pointer.fromAddress(#(self.var(ptr)));
                 final #(self.var(out)) = #(self.var(ptr))_0.asTypedList(#(self.var(len))).toList();
