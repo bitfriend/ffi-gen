@@ -36,12 +36,12 @@ impl DartGenerator {
             import "dart:isolate";
             import "dart:typed_data";
 
-            final class _DartApiEntry extends ffi.Struct {
+            class _DartApiEntry extends ffi.Struct {
                 external ffi.Pointer<ffi.Uint8> name;
                 external ffi.Pointer<ffi.Void> ptr;
             }
 
-            final class _DartApi extends ffi.Struct {
+            class _DartApi extends ffi.Struct {
                 @ffi.Int32()
                 external int major;
 
@@ -260,7 +260,7 @@ impl DartGenerator {
                 }
             }
 
-            final class _FfiStringParts extends ffi.Struct {
+            class _FfiStringParts extends ffi.Struct {
                 @ffi.Int64()
                 external int addr;
                 @ffi.Uint64()
@@ -269,7 +269,7 @@ impl DartGenerator {
                 external int capacity;
             }
 
-            final class _EnumWrapper extends ffi.Struct {
+            class _EnumWrapper extends ffi.Struct {
                 @ffi.Uint32()
                 external int tag;
                 @ffi.IntPtr()
@@ -958,7 +958,7 @@ impl DartGenerator {
     fn generate_return_struct(&self, ret: &Return) -> dart::Tokens {
         if let Return::Struct(vars, name) = ret {
             quote! {
-                final class #(format!("_{}", self.type_ident(name))) extends ffi.Struct {
+                class #(format!("_{}", self.type_ident(name))) extends ffi.Struct {
                     #(for (i, var) in vars.iter().enumerate() => #(self.generate_return_struct_field(i, var.ty.num())))
                 }
             }
