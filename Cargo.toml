@@ -22,10 +22,6 @@ pest_derive = "2.1.0"
 tempfile = { version = "3.2.0", optional = true }
 trybuild = { version = "1.0.53", optional = true }
 
-[dependencies.proc-macro2]
-version = "=1.0.55" # fix issue 'Your compiler does not support spans which is required by genco'
-features = ["span-locations"]
-
 [dependencies.wasm-bindgen]
 version = "0.2.78"
 optional = true
