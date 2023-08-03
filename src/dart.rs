@@ -244,7 +244,7 @@ impl DartGenerator {
                     final parts = _api._ffiStringIntoParts(_box.borrow());
                     final ffi.Pointer<ffi.Uint8> tmp2_0 = ffi.Pointer.fromAddress(parts.addr);
                     debugAllocation("ffistring", parts.addr, parts.len);
-                    final tmp1 = utf8.decode(tmp2_0.asTypedList(parts.len));
+                    final tmp1 = utf8.decode(tmp2_0.asTypedList(parts.len), allowMalformed: true);
                     if (parts.capacity > 0) {
                         final ffi.Pointer<ffi.Void> tmp2_0;
                         tmp2_0 = ffi.Pointer.fromAddress(parts.addr);
@@ -756,7 +756,6 @@ impl DartGenerator {
                     print("returning empty string");
                     return "";
                 }
-                final utf8Decoder = utf8.decoder;
                 final ffi.Pointer<ffi.Uint8> #(self.var(ptr))_ptr = ffi.Pointer.fromAddress(#(self.var(ptr)));
                 List<int> #(self.var(ptr))_buf = [];
                 final #(self.var(ptr))_precast = #(self.var(ptr))_ptr.cast<ffi.Uint8>();
@@ -764,7 +763,7 @@ impl DartGenerator {
                     int char = #(self.var(ptr))_precast.elementAt(i).value;
                     #(self.var(ptr))_buf.add(char);
                 }
-                final #(self.var(out)) = utf8Decoder.convert(#(self.var(ptr))_buf);
+                final #(self.var(out)) = utf8.decode(#(self.var(ptr))_buf, allowMalformed: true);
             },
             Instr::LowerVec(in_, ptr, len, cap, ty, size, align) => quote! {
                 #(self.var(len)) = #(self.var(in_)).length;
@@ -816,7 +815,7 @@ impl DartGenerator {
                 if (#(self.var(var)) == 0) {
                     debugAllocation("handle error", #(self.var(ptr)), #(self.var(len)));
                     final ffi.Pointer<ffi.Uint8> #(self.var(ptr))_0 = ffi.Pointer.fromAddress(#(self.var(ptr)));
-                    final #(self.var(var))_0 = utf8.decode(#(self.var(ptr))_0.asTypedList(#(self.var(len))));
+                    final #(self.var(var))_0 = utf8.decode(#(self.var(ptr))_0.asTypedList(#(self.var(len))), allowMalformed : true);
                     if (#(self.var(len)) > 0) {
                         final ffi.Pointer<ffi.Void> #(self.var(ptr))_0;
                         #(self.var(ptr))_0 = ffi.Pointer.fromAddress(#(self.var(ptr)));
