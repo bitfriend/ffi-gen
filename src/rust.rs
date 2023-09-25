@@ -211,7 +211,7 @@ impl RustGenerator {
             fn ffi_waker(_post_cobject: isize, port: i64) -> Waker {
                 waker_fn(move || unsafe {
                     if cfg!(target_family = "wasm") {
-                        #(wasm_bindgen)
+                        $(wasm_bindgen)
                         extern "C" {
                             fn __notifier_callback(idx: i32);
                         }
@@ -288,13 +288,13 @@ impl RustGenerator {
                 }
             }
 
-            #(for func in iface.functions() => #(self.generate_function(&func)))
-            #(for obj in iface.objects() => #(self.generate_object(&obj)))
-            #(for iter in iface.iterators() => #(self.generate_iterator(&iter)))
-            #(for fut in iface.futures() => #(self.generate_future(&fut)))
-            #(for stream in iface.streams() => #(self.generate_stream(&stream)))
-            #(for ty in iface.listed_types() => #(self.generate_list_type_methods(ty.as_str())))
-            #(for e in iface.enums.iter() => #(self.generate_enum_helpers(e)))
+            $(for func in iface.functions() => $(self.generate_function(&func)))
+            $(for obj in iface.objects() => $(self.generate_object(&obj)))
+            $(for iter in iface.iterators() => $(self.generate_iterator(&iter)))
+            $(for fut in iface.futures() => $(self.generate_future(&fut)))
+            $(for stream in iface.streams() => $(self.generate_stream(&stream)))
+            $(for ty in iface.listed_types() => $(self.generate_list_type_methods(ty.as_str())))
+            $(for e in iface.enums.iter() => $(self.generate_enum_helpers(e)))
         }
         }
     }
@@ -305,14 +305,14 @@ impl RustGenerator {
         let mut entry_index = -1;
         quote!(
             #[no_mangle]
-            pub unsafe fn #(&destructure_function_name)(ptr: *mut c_void) -> EnumWrapper {
-                let e = &*(ptr as *mut #(&e.ident)).clone();
+            pub unsafe fn $(&destructure_function_name)(ptr: *mut c_void) -> EnumWrapper {
+                let e = &*(ptr as *mut $(&e.ident)).clone();
                 let (tag, inner) = match *e {
-                    #(for sub in &e.entries => #(&e.ident)::#(&sub.name)
-                        #(if sub.inner.is_some() { (inner) }) =>
+                    $(for sub in &e.entries => $(&e.ident)::$(&sub.name)
+                        $(if sub.inner.is_some() { (inner) }) =>
                             (
-                                #({ entry_index += 1; entry_index }),
-                                #(if sub.inner.is_some() { Box::into_raw(Box::new(inner)) as _ } else { 0 as _ }),
+                                $({ entry_index += 1; entry_index }),
+                                $(if sub.inner.is_some() { Box::into_raw(Box::new(inner)) as _ } else { 0 as _ }),
                             ),
                     )
                 };
@@ -323,9 +323,9 @@ impl RustGenerator {
             }
 
             #[no_mangle]
-            pub extern "C" fn #(&drop_function_name)(_: i64, boxed: i64) {
+            pub extern "C" fn $(&drop_function_name)(_: i64, boxed: i64) {
                 panic_abort(move || {
-                    unsafe { Box::<#(&e.ident)>::from_raw(boxed as *mut _) };
+                    unsafe { Box::<$(&e.ident)>::from_raw(boxed as *mut _) };
                 });
             }
 
@@ -337,25 +337,25 @@ impl RustGenerator {
         let name = name_s.as_str();
         quote!(
             #[no_mangle]
-            pub extern "C" fn #(format!("__{}Create", name))() -> usize {
+            pub extern "C" fn $(format!("__{}Create", name))() -> usize {
                 panic_abort(move || unsafe {
-                    let list = Box::new(Vec::<#ty>::new());
+                    let list = Box::new(Vec::<$ty>::new());
                     Box::into_raw(list) as _
                 })
             }
 
             #[no_mangle]
-            pub extern "C" fn #(format!("drop_box_{}", name))(_: i64, boxed: i64) {
+            pub extern "C" fn $(format!("drop_box_{}", name))(_: i64, boxed: i64) {
                 panic_abort(move || unsafe {
-                    // Box::<Vec<#ty>>::from_raw(boxed as _);
+                    // Box::<Vec<$ty>>::from_raw(boxed as _);
                     // FIXME: we will just leak these for now
                 })
             }
 
             #[no_mangle]
-            pub extern "C" fn #(format!("__{}Len", name))(boxed: usize) -> u32 {
+            pub extern "C" fn $(format!("__{}Len", name))(boxed: usize) -> u32 {
                 panic_abort(move || unsafe {
-                    let list = Box::<Vec<#ty>>::from_raw(boxed as _);
+                    let list = Box::<Vec<$ty>>::from_raw(boxed as _);
                     let result = list.len() as u32;
                     Box::into_raw(list);
                     result as _
@@ -363,9 +363,9 @@ impl RustGenerator {
             }
 
             #[no_mangle]
-            pub extern "C" fn #(format!("__{}ElementAt", name))(boxed: usize, index: u32) -> usize {
+            pub extern "C" fn $(format!("__{}ElementAt", name))(boxed: usize, index: u32) -> usize {
                 panic_abort(move || unsafe {
-                    let list = Box::<Vec<#ty>>::from_raw(boxed as _);
+                    let list = Box::<Vec<$ty>>::from_raw(boxed as _);
                     let result = list.get(index as usize).unwrap() as *const _;
                     Box::into_raw(list);
                     result as _
@@ -373,28 +373,28 @@ impl RustGenerator {
             }
 
             #[no_mangle]
-            pub extern "C" fn #(format!("__{}Remove", name))(boxed: usize, index: u32) -> usize {
+            pub extern "C" fn $(format!("__{}Remove", name))(boxed: usize, index: u32) -> usize {
                 panic_abort(move || unsafe {
-                    let mut list = &mut *(boxed as *mut Vec<#ty>);
+                    let mut list = &mut *(boxed as *mut Vec<$ty>);
                     let el = Box::new(list.remove(index as _));
                     Box::into_raw(el) as _
                 })
             }
 
             #[no_mangle]
-            pub extern "C" fn #(format!("__{}Add", name))(boxed: usize, element: usize) {
+            pub extern "C" fn $(format!("__{}Add", name))(boxed: usize, element: usize) {
                 panic_abort(move || unsafe {
-                    let mut list = &mut *(boxed as *mut Vec<#ty>);
-                    let el = Box::<#ty>::from_raw(element as _);
+                    let mut list = &mut *(boxed as *mut Vec<$ty>);
+                    let el = Box::<$ty>::from_raw(element as _);
                     list.push(*el);
                 })
             }
 
             #[no_mangle]
-            pub extern "C" fn #(format!("__{}Insert", name))(boxed: usize, index: u32, element: usize) {
+            pub extern "C" fn $(format!("__{}Insert", name))(boxed: usize, index: u32, element: usize) {
                 panic_abort(move || unsafe {
-                    let mut list = &mut *(boxed as *mut Vec<#ty>);
-                    let el = Box::<#ty>::from_raw(element as _);
+                    let mut list = &mut *(boxed as *mut Vec<$ty>);
+                    let el = Box::<$ty>::from_raw(element as _);
                     list.insert(index as _, *el);
                 })
             }
@@ -403,18 +403,18 @@ impl RustGenerator {
 
     fn generate_function(&self, func: &AbiFunction) -> rust::Tokens {
         let ffi = self.abi.export(func);
-        let args = quote!(#(for var in &ffi.ffi_args => #(self.var(var)): #(self.ty(&var.ty)),));
-        let ret = match &ffi.ffi_ret {
+        let args: genco::Tokens<genco::lang::Rust> = quote!($(for var in &ffi.ffi_args => $(self.var(var)): $(self.ty(&var.ty)),));
+        let ret: genco::Tokens<genco::lang::Rust> = match &ffi.ffi_ret {
             Return::Void => quote!(),
-            Return::Num(var) => quote!(-> #(self.ty(&var.ty))),
-            Return::Struct(_, name) => quote!(-> #name),
+            Return::Num(var) => quote!(-> $(self.ty(&var.ty))),
+            Return::Struct(_, name) => quote!(-> $name),
         };
         let return_ = match &ffi.ffi_ret {
             Return::Void => quote!(),
             Return::Num(var) => self.var(var),
             Return::Struct(vars, name) => quote! {
-                #name {
-                    #(for (i, var) in vars.iter().enumerate() => #(format!("ret{}", i)): #(self.var(var)),)
+                $name {
+                    $(for (i, var) in vars.iter().enumerate() => $(format!("ret{}", i)): $(self.var(var)),)
                 }
             },
         };
@@ -425,9 +425,9 @@ impl RustGenerator {
         };
         quote! {
             #[no_mangle]
-            pub extern "C" fn #(&ffi.symbol)(#args) #ret {
+            pub extern "C" fn $(&ffi.symbol)($args) $ret {
                 panic_abort(move || {
-                    #(for instr in &ffi.instr => #(self.instr(instr)))
+                    $(for instr in &ffi.instr => $(self.instr(instr)))
                     #return_
                 })
             }
@@ -437,10 +437,10 @@ impl RustGenerator {
 
     fn generate_object(&self, obj: &AbiObject) -> rust::Tokens {
         let destructor_name = format!("drop_box_{}", &obj.name);
-        let destructor_type = quote!(#(&obj.name));
+        let destructor_type: genco::Tokens<genco::lang::Rust> = quote!($(&obj.name));
         quote! {
-            #(for method in &obj.methods => #(self.generate_function(method)))
-            #(self.generate_destructor(&destructor_name, destructor_type))
+            $(for method in &obj.methods => $(self.generate_function(method)))
+            $(self.generate_destructor(&destructor_name, destructor_type))
         }
     }
 
@@ -449,9 +449,9 @@ impl RustGenerator {
         // the first argument.
         quote! {
             #[no_mangle]
-            pub extern "C" fn #name(_: #(self.ffi_num_type(self.abi.iptr())), boxed: #(self.ffi_num_type(self.abi.iptr()))) {
+            pub extern "C" fn $name(_: $(self.ffi_num_type(self.abi.iptr())), boxed: $(self.ffi_num_type(self.abi.iptr()))) {
                 panic_abort(move || {
-                    unsafe { Box::<#ty>::from_raw(boxed as *mut _) };
+                    unsafe { Box::<$ty>::from_raw(boxed as *mut _) };
                 });
             }
         }
@@ -459,28 +459,28 @@ impl RustGenerator {
 
     fn generate_iterator(&self, iter: &AbiIter) -> rust::Tokens {
         let destructor_name = format!("{}_iter_drop", &iter.symbol);
-        let destructor_type = quote!(FfiIter<#(self.ty(&iter.ty))>);
+        let destructor_type: genco::Tokens<genco::lang::Rust> = quote!(FfiIter<$(self.ty(&iter.ty))>);
         quote! {
-            #(self.generate_function(&iter.next()))
-            #(self.generate_destructor(&destructor_name, destructor_type))
+            $(self.generate_function(&iter.next()))
+            $(self.generate_destructor(&destructor_name, destructor_type))
         }
     }
 
     fn generate_future(&self, fut: &AbiFuture) -> rust::Tokens {
         let destructor_name = format!("{}_future_drop", &fut.symbol);
-        let destructor_type = quote!(FfiFuture<#(self.ty(&fut.ty))>);
+        let destructor_type: genco::Tokens<genco::lang::Rust> = quote!(FfiFuture<$(self.ty(&fut.ty))>);
         quote! {
-            #(self.generate_function(&fut.poll()))
-            #(self.generate_destructor(&destructor_name, destructor_type))
+            $(self.generate_function(&fut.poll()))
+            $(self.generate_destructor(&destructor_name, destructor_type))
         }
     }
 
     fn generate_stream(&self, stream: &AbiStream) -> rust::Tokens {
         let destructor_name = format!("{}_stream_drop", &stream.symbol);
-        let destructor_type = quote!(FfiStream<#(self.ty(&stream.ty))>);
+        let destructor_type: genco::Tokens<genco::lang::Rust> = quote!(FfiStream<$(self.ty(&stream.ty))>);
         quote! {
-            #(self.generate_function(&stream.poll()))
-            #(self.generate_destructor(&destructor_name, destructor_type))
+            $(self.generate_function(&stream.poll()))
+            $(self.generate_destructor(&destructor_name, destructor_type))
         }
     }
 
@@ -489,8 +489,8 @@ impl RustGenerator {
         if let Return::Struct(vars, name) = &ffi.ffi_ret {
             quote! {
                 #[repr(C)]
-                pub struct #name {
-                    #(for (i, var) in vars.iter().enumerate() => #(format!("pub ret{}", i)): #(self.ty(&var.ty)),)
+                pub struct $name {
+                    $(for (i, var) in vars.iter().enumerate() => $(format!("pub ret{}", i)): $(self.ty(&var.ty)),)
                 }
             }
         } else {
@@ -501,213 +501,213 @@ impl RustGenerator {
     fn instr(&self, instr: &Instr) -> rust::Tokens {
         match instr {
             Instr::LiftNum(in_, out) | Instr::LiftIsize(in_, out) | Instr::LiftUsize(in_, out) => {
-                quote!(let #(self.var(out)) = #(self.var(in_)) as _;)
+                quote!(let $(self.var(out)) = $(self.var(in_)) as _;)
             }
             Instr::LiftNumAsU32Tuple(in_low, in_high, out, num_type) => {
                 let ty = self.num_type(*num_type);
                 quote! {
-                   let #(self.var(out)) = #(ty.clone())::from(#(self.var(in_low))) | (#ty::from(#(self.var(in_high))) << 32);
+                   let $(self.var(out)) = $(ty.clone())::from($(self.var(in_low))) | ($ty::from($(self.var(in_high))) << 32);
                 }
             }
             Instr::LowerNumAsU32Tuple(r#in, low, high, _num_type) => {
                 quote! {
-                    #(self.var(low)) = #(self.var(r#in)) as u32;
-                    #(self.var(high)) = (#(self.var(r#in)) >> 32) as u32;
+                    $(self.var(low)) = $(self.var(r#in)) as u32;
+                    $(self.var(high)) = ($(self.var(r#in)) >> 32) as u32;
                 }
             }
             Instr::LowerNum(in_, out)
             | Instr::LowerIsize(in_, out)
-            | Instr::LowerUsize(in_, out) => quote!(#(self.var(out)) = #(self.var(in_)) as _;),
-            Instr::LiftBool(in_, out) => quote!(let #(self.var(out)) = #(self.var(in_)) > 0;),
+            | Instr::LowerUsize(in_, out) => quote!($(self.var(out)) = $(self.var(in_)) as _;),
+            Instr::LiftBool(in_, out) => quote!(let $(self.var(out)) = $(self.var(in_)) > 0;),
             Instr::LowerBool(in_, out) => {
-                quote!(#(self.var(out)) = if #(self.var(in_)) { 1 } else { 0 };)
+                quote!($(self.var(out)) = if $(self.var(in_)) { 1 } else { 0 };)
             }
             Instr::LiftStr(ptr, len, out) => quote! {
-                let #(self.var(out))_0: &[u8] =
-                    unsafe { core::slice::from_raw_parts(#(self.var(ptr)) as _, #(self.var(len)) as _) };
-                let #(self.var(out)): &str = unsafe { std::str::from_utf8_unchecked(#(self.var(out))_0) };
+                let $(self.var(out))_0: &[u8] =
+                    unsafe { core::slice::from_raw_parts($(self.var(ptr)) as _, $(self.var(len)) as _) };
+                let $(self.var(out)): &str = unsafe { std::str::from_utf8_unchecked($(self.var(out))_0) };
             },
             Instr::LowerStr(in_, ptr, len) => quote! {
-                #(self.var(ptr)) = #(self.var(in_)).as_ptr() as _;
-                #(self.var(len)) = #(self.var(in_)).len() as _;
+                $(self.var(ptr)) = $(self.var(in_)).as_ptr() as _;
+                $(self.var(len)) = $(self.var(in_)).len() as _;
             },
             Instr::LiftString(ptr, len, cap, out) => quote! {
-                let #(self.var(out)) = unsafe {
+                let $(self.var(out)) = unsafe {
                     String::from_raw_parts(
-                        #(self.var(ptr)) as _,
-                        #(self.var(len)) as _,
-                        #(self.var(cap)) as _,
+                        $(self.var(ptr)) as _,
+                        $(self.var(len)) as _,
+                        $(self.var(cap)) as _,
                     )
                 };
             },
             Instr::LowerString(in_, ptr, len, cap) | Instr::LowerVec(in_, ptr, len, cap, _) => {
                 quote! {
-                    let #(self.var(in_))_0 = ManuallyDrop::new(#(self.var(in_)));
-                    #(self.var(ptr)) = #(self.var(in_))_0.as_ptr() as _;
-                    #(self.var(len)) = #(self.var(in_))_0.len() as _;
-                    #(self.var(cap)) = #(self.var(in_))_0.capacity() as _;
+                    let $(self.var(in_))_0 = ManuallyDrop::new($(self.var(in_)));
+                    $(self.var(ptr)) = $(self.var(in_))_0.as_ptr() as _;
+                    $(self.var(len)) = $(self.var(in_))_0.len() as _;
+                    $(self.var(cap)) = $(self.var(in_))_0.capacity() as _;
                 }
             }
             Instr::LiftSlice(ptr, len, out, ty) => quote! {
-                let #(self.var(out)): &[#(self.num_type(*ty))] =
-                    unsafe { core::slice::from_raw_parts(#(self.var(ptr)) as _, #(self.var(len)) as _) };
+                let $(self.var(out)): &[$(self.num_type(*ty))] =
+                    unsafe { core::slice::from_raw_parts($(self.var(ptr)) as _, $(self.var(len)) as _) };
             },
             Instr::LowerSlice(in_, ptr, len, _ty) => quote! {
-                #(self.var(ptr)) = #(self.var(in_)).as_ptr() as _;
-                #(self.var(len)) = #(self.var(in_)).len() as _;
+                $(self.var(ptr)) = $(self.var(in_)).as_ptr() as _;
+                $(self.var(len)) = $(self.var(in_)).len() as _;
             },
             Instr::LiftVec(ptr, len, cap, out, ty) => quote! {
-                let #(self.var(out)) = unsafe {
-                    Vec::<#(self.num_type(*ty))>::from_raw_parts(
-                        #(self.var(ptr)) as _,
-                        #(self.var(len)) as _,
-                        #(self.var(cap)) as _,
+                let $(self.var(out)) = unsafe {
+                    Vec::<$(self.num_type(*ty))>::from_raw_parts(
+                        $(self.var(ptr)) as _,
+                        $(self.var(len)) as _,
+                        $(self.var(cap)) as _,
                     )
                 };
             },
             Instr::LiftRefObject(in_, out, object) => quote! {
-                let #(self.var(out)) = unsafe { &mut *(#(self.var(in_)) as *mut #object) };
+                let $(self.var(out)) = unsafe { &mut *($(self.var(in_)) as *mut $object) };
             },
             Instr::LowerRefObject(in_, out) => quote! {
-                #(self.var(out)) = #(self.var(in_)) as *const _ as _;
+                $(self.var(out)) = $(self.var(in_)) as *const _ as _;
             },
             Instr::LiftObject(in_, out, object) => quote! {
-                let #(self.var(out)) = unsafe { Box::from_raw(#(self.var(in_)) as *mut #object) };
+                let $(self.var(out)) = unsafe { Box::from_raw($(self.var(in_)) as *mut $object) };
             },
             Instr::LowerObject(in_, out) => quote! {
-                let #(self.var(in_))_0 = assert_send_static(#(self.var(in_)));
-                #(self.var(out)) = Box::into_raw(Box::new(#(self.var(in_))_0)) as _;
+                let $(self.var(in_))_0 = assert_send_static($(self.var(in_)));
+                $(self.var(out)) = Box::into_raw(Box::new($(self.var(in_))_0)) as _;
             },
             Instr::LiftRefIter(in_, out, ty) => quote! {
-                let #(self.var(out)) = unsafe { &mut *(#(self.var(in_)) as *mut FfiIter<#(self.ty(ty))>) };
+                let $(self.var(out)) = unsafe { &mut *($(self.var(in_)) as *mut FfiIter<$(self.ty(ty))>) };
             },
             Instr::LowerRefIter(in_, out, _ty) => quote! {
-                #(self.var(out)) = #(self.var(in_)) as *const _ as _;
+                $(self.var(out)) = $(self.var(in_)) as *const _ as _;
             },
             Instr::LiftIter(in_, out, ty) => quote! {
-                let #(self.var(out)) = unsafe { Box::from_raw(#(self.var(in_)) as *mut FfiIter<#(self.ty(ty))>) };
+                let $(self.var(out)) = unsafe { Box::from_raw($(self.var(in_)) as *mut FfiIter<$(self.ty(ty))>) };
             },
             Instr::LowerIter(in_, out, ty) => {
-                let iter = if let AbiType::Result(_) = ty {
-                    quote!(#(self.var(in_)).map_err(|err| err.to_string()))
+                let iter: genco::Tokens<genco::lang::Rust> = if let AbiType::Result(_) = ty {
+                    quote!($(self.var(in_)).map_err(|err| err.to_string()))
                 } else {
-                    quote!(#(self.var(in_)))
+                    quote!($(self.var(in_)))
                 };
                 quote! {
-                    let #(self.var(out))_0 = #iter;
-                    let #(self.var(out))_1: FfiIter<#(self.ty(ty))> = FfiIter::new(#(self.var(out))_0);
-                    #(self.var(out)) = Box::into_raw(Box::new(#(self.var(out))_1)) as _;
+                    let $(self.var(out))_0 = $iter;
+                    let $(self.var(out))_1: FfiIter<$(self.ty(ty))> = FfiIter::new($(self.var(out))_0);
+                    $(self.var(out)) = Box::into_raw(Box::new($(self.var(out))_1)) as _;
                 }
             }
             Instr::LiftRefFuture(in_, out, ty) => quote! {
-                let #(self.var(out)) = unsafe { &mut *(#(self.var(in_)) as *mut FfiFuture<#(self.ty(ty))>) };
+                let $(self.var(out)) = unsafe { &mut *($(self.var(in_)) as *mut FfiFuture<$(self.ty(ty))>) };
             },
             Instr::LowerRefFuture(in_, out, _ty) => quote! {
-                #(self.var(out)) = #(self.var(in_)) as *const _ as _;
+                $(self.var(out)) = $(self.var(in_)) as *const _ as _;
             },
             Instr::LiftFuture(in_, out, ty) => quote! {
-                let #(self.var(out)) = unsafe { Box::from_raw(#(self.var(in_)) as *mut FfiFuture<#(self.ty(ty))>) };
+                let $(self.var(out)) = unsafe { Box::from_raw($(self.var(in_)) as *mut FfiFuture<$(self.ty(ty))>) };
             },
             Instr::LowerFuture(in_, out, ty) => {
-                let future = if let AbiType::Result(_) = ty {
-                    quote!(async move { #(self.var(in_)).await.map_err(|err| err.to_string()) })
+                let future: genco::Tokens<genco::lang::Rust> = if let AbiType::Result(_) = ty {
+                    quote!(async move { $(self.var(in_)).await.map_err(|err| err.to_string()) })
                 } else {
-                    quote!(#(self.var(in_)))
+                    quote!($(self.var(in_)))
                 };
                 quote! {
-                    let #(self.var(out))_0 = #future;
-                    let #(self.var(out))_1: FfiFuture<#(self.ty(ty))> = FfiFuture::new(#(self.var(out))_0);
-                    #(self.var(out)) = Box::into_raw(Box::new(#(self.var(out))_1)) as _;
+                    let $(self.var(out))_0 = $future;
+                    let $(self.var(out))_1: FfiFuture<$(self.ty(ty))> = FfiFuture::new($(self.var(out))_0);
+                    $(self.var(out)) = Box::into_raw(Box::new($(self.var(out))_1)) as _;
                 }
             }
             Instr::LiftRefStream(in_, out, ty) => quote! {
-                let #(self.var(out)) = unsafe { &mut *(#(self.var(in_)) as *mut FfiStream<#(self.ty(ty))>) };
+                let $(self.var(out)) = unsafe { &mut *($(self.var(in_)) as *mut FfiStream<$(self.ty(ty))>) };
             },
             Instr::LowerRefStream(in_, out, _ty) => quote! {
-                #(self.var(out)) = #(self.var(in_)) as *const _ as _;
+                $(self.var(out)) = $(self.var(in_)) as *const _ as _;
             },
             Instr::LiftStream(in_, out, ty) => quote! {
-                let #(self.var(out)) = unsafe { Box::from_raw(#(self.var(in_)) as *mut FfiStream<#(self.ty(ty))>) };
+                let $(self.var(out)) = unsafe { Box::from_raw($(self.var(in_)) as *mut FfiStream<$(self.ty(ty))>) };
             },
             Instr::LowerStream(in_, out, ty) => {
-                let map_err = if let AbiType::Result(_) = ty {
+                let map_err: genco::Tokens<genco::lang::Rust> = if let AbiType::Result(_) = ty {
                     quote!(.map_err(|err| err.to_string()))
                 } else {
                     quote!()
                 };
                 quote! {
-                    let #(self.var(out))_0: FfiStream<#(self.ty(ty))> = FfiStream::new(#(self.var(in_))#map_err);
-                    #(self.var(out)) = Box::into_raw(Box::new(#(self.var(out))_0)) as _;
+                    let $(self.var(out))_0: FfiStream<$(self.ty(ty))> = FfiStream::new($(self.var(in_))$map_err);
+                    $(self.var(out)) = Box::into_raw(Box::new($(self.var(out))_0)) as _;
                 }
             }
             Instr::LiftOption(var, out, inner, inner_instr) => quote! {
-                let #(self.var(out)) = if #(self.var(var)) == 0 {
+                let $(self.var(out)) = if $(self.var(var)) == 0 {
                     None
                 } else {
-                    #(for instr in inner_instr => #(self.instr(instr)))
-                    Some(#(self.var(inner)))
+                    $(for instr in inner_instr => $(self.instr(instr)))
+                    Some($(self.var(inner)))
                 };
             },
             Instr::LowerOption(in_, var, some, some_instr) => quote! {
-                if let Some(#(self.var(some))) = #(self.var(in_)) {
-                    #(self.var(var)) = 1;
-                    #(for instr in some_instr => #(self.instr(instr)))
+                if let Some($(self.var(some))) = $(self.var(in_)) {
+                    $(self.var(var)) = 1;
+                    $(for instr in some_instr => $(self.instr(instr)))
                 } else {
-                    #(self.var(var)) = 0;
+                    $(self.var(var)) = 0;
                 }
             },
             Instr::LowerResult(in_, var, ok, ok_instr, err, err_instr) => quote! {
-                match #(self.var(in_)) {
-                    Ok(#(self.var(ok))) => {
-                        #(self.var(var)) = 1;
-                        #(for instr in ok_instr => #(self.instr(instr)))
+                match $(self.var(in_)) {
+                    Ok($(self.var(ok))) => {
+                        $(self.var(var)) = 1;
+                        $(for instr in ok_instr => $(self.instr(instr)))
                     }
-                    Err(#(self.var(err))_0) => {
-                        #(self.var(var)) = 0;
-                        let #(self.var(err)) = #(self.var(err))_0.to_string();
-                        #(for instr in err_instr => #(self.instr(instr)))
+                    Err($(self.var(err))_0) => {
+                        $(self.var(var)) = 0;
+                        let $(self.var(err)) = $(self.var(err))_0.to_string();
+                        $(for instr in err_instr => $(self.instr(instr)))
                     }
                 };
             },
             Instr::LiftTuple(vars, out) => quote! {
-                let #(self.var(out)) = (#(for var in vars => #(self.var(var)),));
+                let $(self.var(out)) = ($(for var in vars => $(self.var(var)),));
             },
             Instr::LowerTuple(ret, vars) => quote! {
-                #(for (i, var) in vars.iter().enumerate() => let #(self.var(var)) = #(self.var(ret)).#i;)
+                $(for (i, var) in vars.iter().enumerate() => let $(self.var(var)) = $(self.var(ret)).$i;)
             },
             Instr::CallAbi(ty, self_, name, ret, args) => {
-                let invoke = match ty {
+                let invoke: genco::Tokens<genco::lang::Rust> = match ty {
                     FunctionType::Constructor(object) => {
-                        quote!(#object::#name)
+                        quote!($object::$name)
                     }
                     FunctionType::Method(_)
                     | FunctionType::NextIter(_, _)
                     | FunctionType::PollFuture(_, _)
                     | FunctionType::PollStream(_, _) => {
-                        quote!(#(self.var(self_.as_ref().unwrap())).#name)
+                        quote!($(self.var(self_.as_ref().unwrap())).$name)
                     }
                     FunctionType::Function => {
-                        quote!(#name)
+                        quote!($name)
                     }
                 };
-                let args = quote!(#(for arg in args => #(self.var(arg)),));
+                let args: genco::Tokens<genco::lang::Rust> = quote!($(for arg in args => $(self.var(arg)),));
                 if let Some(ret) = ret {
-                    quote!(let #(self.var(ret)) = #invoke(#args);)
+                    quote!(let $(self.var(ret)) = $invoke($args);)
                 } else {
-                    quote!(#invoke(#args);)
+                    quote!($invoke($args);)
                 }
             }
             Instr::DefineRets(vars) => quote! {
-                #(for var in vars => #[allow(unused_assignments)] let mut #(self.var(var)) = Default::default();)
+                $(for var in vars => #[allow(unused_assignments)] let mut $(self.var(var)) = Default::default();)
             },
             Instr::AssertType(var, ty) => {
-                quote!(let #(self.var(var))_type_test: &#ty = &#(self.var(var));)
+                quote!(let $(self.var(var))_type_test: &$ty = &$(self.var(var));)
             }
         }
     }
 
     fn var(&self, var: &Var) -> rust::Tokens {
-        quote!(#(format!("tmp{}", var.binding)))
+        quote!($(format!("tmp{}", var.binding)))
     }
 
     fn ty(&self, ty: &AbiType) -> rust::Tokens {
@@ -718,22 +718,22 @@ impl RustGenerator {
             AbiType::Bool => quote!(bool),
             AbiType::RefStr => quote!(&str),
             AbiType::String => quote!(String),
-            AbiType::RefSlice(ty) => quote!(&[#(self.num_type(*ty))]),
-            AbiType::Vec(ty) => quote!(Vec<#(self.num_type(*ty))>),
-            AbiType::Option(ty) => quote!(Option<#(self.ty(ty))>),
-            AbiType::Result(ty) => quote!(Result<#(self.ty(ty))>),
-            AbiType::Object(ident) => quote!(#ident),
-            AbiType::RefObject(ident) => quote!(&#ident),
-            AbiType::Tuple(ty) => quote!((#(for ty in ty => #(self.ty(ty)),))),
-            AbiType::RefIter(ty) => quote!(&Vec<#(self.ty(ty))>),
-            AbiType::Iter(ty) => quote!(Vec<#(self.ty(ty))>),
-            AbiType::RefFuture(ty) => quote!(&impl Future<Output = #(self.ty(ty))>),
-            AbiType::Future(ty) => quote!(impl Future<Output = #(self.ty(ty))>),
-            AbiType::RefStream(ty) => quote!(&impl Stream<Item = #(self.ty(ty))>),
-            AbiType::Stream(ty) => quote!(impl Stream<Item = #(self.ty(ty))>),
-            AbiType::Buffer(ty) => quote!(FfiBuffer<#(self.num_type(*ty))>),
-            AbiType::List(ty) => quote!(#(format!("Vec<{}>", ty))),
-            AbiType::RefEnum(ty) => quote!(#(format!("{}_Wrapper", ty))),
+            AbiType::RefSlice(ty) => quote!(&[$(self.num_type(*ty))]),
+            AbiType::Vec(ty) => quote!(Vec<$(self.num_type(*ty))>),
+            AbiType::Option(ty) => quote!(Option<$(self.ty(ty))>),
+            AbiType::Result(ty) => quote!(Result<$(self.ty(ty))>),
+            AbiType::Object(ident) => quote!($ident),
+            AbiType::RefObject(ident) => quote!(&$ident),
+            AbiType::Tuple(ty) => quote!(($(for ty in ty => $(self.ty(ty)),))),
+            AbiType::RefIter(ty) => quote!(&Vec<$(self.ty(ty))>),
+            AbiType::Iter(ty) => quote!(Vec<$(self.ty(ty))>),
+            AbiType::RefFuture(ty) => quote!(&impl Future<Output = $(self.ty(ty))>),
+            AbiType::Future(ty) => quote!(impl Future<Output = $(self.ty(ty))>),
+            AbiType::RefStream(ty) => quote!(&impl Stream<Item = $(self.ty(ty))>),
+            AbiType::Stream(ty) => quote!(impl Stream<Item = $(self.ty(ty))>),
+            AbiType::Buffer(ty) => quote!(FfiBuffer<$(self.num_type(*ty))>),
+            AbiType::List(ty) => quote!($(format!("Vec<{}>", ty))),
+            AbiType::RefEnum(ty) => quote!($(format!("{}_Wrapper", ty))),
         }
     }
 
@@ -782,7 +782,7 @@ pub mod test_runner {
         let iface = Interface::parse(iface)?;
         let gen = RustGenerator::new(Abi::native());
         let gen_tokens = gen.generate(iface);
-        let tokens = quote! {
+        let tokens: genco::Tokens<genco::lang::Rust> = quote! {
             #gen_tokens
             #api
             fn main() {
