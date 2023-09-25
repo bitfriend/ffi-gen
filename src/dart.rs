@@ -1,7 +1,8 @@
 use crate::import::{Import, Instr};
 use crate::parser::{Enum, Type};
 use crate::{Abi, AbiFunction, AbiObject, AbiType, FunctionType, Interface, NumType, Return, Var};
-use genco::{prelude::*, tokens::static_literal};
+use genco::prelude::*;
+use genco::tokens::static_literal;
 use heck::*;
 
 pub struct DartGenerator {
@@ -968,7 +969,7 @@ impl DartGenerator {
     }
 
     fn generate_doc(&self, doc: &[String]) -> dart::Tokens {
-        quote!($(for line in doc => $(static_literal("///")) $line $(static_literal("\n"))))
+        quote!($(for line in doc => $(static_literal("\n///")) $line$(static_literal("\n"))))
     }
 
     fn type_ident(&self, s: &str) -> String {

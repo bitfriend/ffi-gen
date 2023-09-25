@@ -1,7 +1,8 @@
 use crate::import::Instr;
 use crate::{Abi, AbiFunction, AbiObject, AbiType, FunctionType, Interface, NumType, Return, Var};
 use anyhow::Result;
-use genco::{prelude::*, tokens::static_literal};
+use genco::prelude::*;
+use genco::tokens::static_literal;
 use heck::*;
 use std::path::Path;
 use std::process::Command;
