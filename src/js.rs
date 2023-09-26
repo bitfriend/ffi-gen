@@ -2,7 +2,6 @@ use crate::import::Instr;
 use crate::{Abi, AbiFunction, AbiObject, AbiType, FunctionType, Interface, NumType, Return, Var};
 use anyhow::Result;
 use genco::prelude::*;
-use genco::tokens::static_literal;
 use heck::*;
 use std::path::Path;
 use std::process::Command;
@@ -115,10 +114,10 @@ impl TsGenerator {
             if gen && it.peek().is_some() {
                 quote_in! { *t =>
                     $("/**")
-                    $(for line in it join ($(static_literal("\n"))) {
-                        $(static_literal(" "))* $(line.into())
+                    $(for line in it join ($['\n']) {
+                        $[' ']* $(line.into())
                     })
-                    $(static_literal(" "))$("*/")
+                    $[' ']$("*/")
                 }
             }
         })
@@ -139,7 +138,7 @@ impl TsGenerator {
               $(self.gen_doc(&["Initialize the API.", "", "@returns a promise resolved when initialization is done."]))
               fetch(url, imports): Promise<void>;
 
-              $(for func in iface.functions() join ($(static_literal("\n\n"))) => $(self.generate_function(func)))
+              $(for func in iface.functions() join ($['\n']$['\n']) => $(self.generate_function(func)))
             }
 
             $(for obj in iface.objects() => $(self.generate_object(obj)))
@@ -236,7 +235,7 @@ impl TsGenerator {
     fn generate_object(&self, obj: AbiObject) -> js::Tokens {
         quote! {
             export class $(self.type_ident(&obj.name)) {
-                $(for method in obj.methods join ($(static_literal("\n\n"))) => $(self.generate_function(method)))
+                $(for method in obj.methods join ($['\n']$['\n']) => $(self.generate_function(method)))
 
                 drop(): void;
             }
@@ -550,7 +549,7 @@ impl JsGenerator {
                 quote!($(self.var(out)) = $(self.var(in_)).box.move();)
             }
             Instr::LiftObject(obj, box_, drop, out) => quote! {
-                const $(self.var(box_))_0 = () => { $api.drop($("\"")$drop$("\""), $(self.var(box_))); };
+                const $(self.var(box_))_0 = () => { $api.drop($[str]($[const](drop)), $(self.var(box_))); };
                 const $(self.var(box_))_1 = new Box($(self.var(box_)), $(self.var(box_))_0);
                 const $(self.var(out)) = new $obj($api, $(self.var(box_))_1);
             },
@@ -680,21 +679,21 @@ impl JsGenerator {
                 }
             },
             Instr::LiftIter(box_, next, drop, out) => quote! {
-                const $(self.var(box_))_0 = () => { $api.drop($("\"")$drop$("\""), $(self.var(box_))); };
+                const $(self.var(box_))_0 = () => { $api.drop($[str]($[const](drop)), $(self.var(box_))); };
                 const $(self.var(box_))_1 = new Box($(self.var(box_)), $(self.var(box_))_0);
                 const $(self.var(out)) = nativeIter($(self.var(box_))_1, (a) => {
                     return $api.$(self.ident(next))(a);
                 });
             },
             Instr::LiftFuture(box_, poll, drop, out) => quote! {
-                const $(self.var(box_))_0 = () => { $api.drop($("\"")$drop$("\""), $(self.var(box_))); };
+                const $(self.var(box_))_0 = () => { $api.drop($[str]($[const](drop)), $(self.var(box_))); };
                 const $(self.var(box_))_1 = new Box($(self.var(box_)), $(self.var(box_))_0);
                 const $(self.var(out)) = nativeFuture($(self.var(box_))_1, (a, b, c) => {
                     return $api.$(self.ident(poll))(a, b, c);
                 });
             },
             Instr::LiftStream(box_, poll, drop, out) => quote! {
-                const $(self.var(box_))_0 = () => { $api.drop($("\"")$drop$("\""), $(self.var(box_))); };
+                const $(self.var(box_))_0 = () => { $api.drop($[str]($[const](drop)), $(self.var(box_))); };
                 const $(self.var(box_))_1 = new Box($(self.var(box_)), $(self.var(box_))_0);
                 const $(self.var(out)) = nativeStream($(self.var(box_))_1, (a, b, c, d) => {
                     return $api.$(self.ident(poll))(a, b, c, d);
@@ -875,7 +874,7 @@ pub mod test_runner {
 
             async function main() {
                 const api = new Api();
-                await api.fetch($("\"")$(library_file.as_ref().to_str().unwrap()).multivalue.wasm$("\""), {
+                await api.fetch($[str]($[const](library_file.as_ref().to_str().unwrap()).multivalue.wasm), {
                     env: {
                         __panic: (ptr, len) => {
                             const buf = new Uint8Array(api.instance.exports.memory.buffer, ptr, len);

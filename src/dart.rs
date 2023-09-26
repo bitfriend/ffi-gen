@@ -304,11 +304,11 @@ impl DartGenerator {
                 $(static_literal("///")) The library is loaded based on platform conventions.
                 factory Api.load() {
                     String? name;
-                    if (Platform.isLinux) name = $("\"")$("lib")$(&self.cdylib_name)$(".so")$("\"");
-                    if (Platform.isAndroid) name = $("\"")$("lib")$(&self.cdylib_name)$(".so")$("\"");
-                    if (Platform.isMacOS) name = $("\"")$("lib")$(&self.cdylib_name)$(".dylib")$("\"");
+                    if (Platform.isLinux) name = $[str](lib$[const](&self.cdylib_name).so);
+                    if (Platform.isAndroid) name = $[str](lib$[const](&self.cdylib_name).so);
+                    if (Platform.isMacOS) name = $[str](lib$[const](&self.cdylib_name).dylib);
                     if (Platform.isIOS) name = "";
-                    if (Platform.isWindows) name = $("\"")$(&self.cdylib_name)$(".dll")$("\"");
+                    if (Platform.isWindows) name = $[str](lib$[const](&self.cdylib_name).dll);
                     if (name == null) {
                         throw UnsupportedError("This platform is not supported.");
                     }
@@ -408,7 +408,7 @@ impl DartGenerator {
         quote!(
             late final $(&ptr_name) = _lookup<
                 ffi.NativeFunction<
-                    _EnumWrapper Function(ffi.IntPtr)>>($("\"")$symbol_name$("\""));
+                    _EnumWrapper Function(ffi.IntPtr)>>($[str]($[const](symbol_name)));
 
             late final $(&func_name) = $(&ptr_name).asFunction<
                 _EnumWrapper Function(int)>();
@@ -422,7 +422,7 @@ impl DartGenerator {
         let mut destructure_switch_index = -1;
         quote!(
             enum $(&enum_tag_name) {
-                $(for entry in e.entries.iter() => $(&entry.name),$(static_literal("\n")))
+                $(for entry in e.entries.iter() => $(&entry.name),$['\n'])
             }
 
             class $(&e.ident) {
@@ -435,23 +435,23 @@ impl DartGenerator {
                 void destructureSelf() {
                     final parts = this._api.$(&destructure_function_name)(this._box.borrow());
                     switch (parts.tag) {
-                        $(for entry in e.entries.iter() => case $({ destructure_switch_index += 1; destructure_switch_index }):$(static_literal("\n"))
-                            this._tag = $(&enum_tag_name).$(&entry.name);$(static_literal("\n"))
+                        $(for entry in e.entries.iter() => case $({ destructure_switch_index += 1; destructure_switch_index }):$['\n']
+                            this._tag = $(&enum_tag_name).$(&entry.name);$['\n']
                             // this._box.move();
                             $(if entry.inner.is_some() {
                                 $({
                                     let inner_name = if let Type::Ident(name) = entry.inner.as_ref().unwrap() { name } else { unimplemented!("Enums can only wrap objects") };
                                     quote!(
                                         final ffi.Pointer<ffi.Void> innerPtr = ffi.Pointer.fromAddress(parts.inner);
-                                        final innerBox = _Box(this._api, innerPtr, $("\"")$(format!("drop_box_{}", inner_name))$("\""));
+                                        final innerBox = _Box(this._api, innerPtr, $[str](drop_box_$[const](inner_name)));
                                         innerBox._finalizer = this._api._registerFinalizer(innerBox);
                                         this._inner = $(inner_name)._(this._api, innerBox);
                                     )
                                 })
                             } else {})
-                            break;$(static_literal("\n"))
+                            break;$['\n']
                         )
-                        default:$(static_literal("\n"))
+                        default:$['\n']
                             throw new StateError($(format!("\"Destructuring enum gave back an invalid tag: ${{parts.tag}}\"")));
                     }
                 }
@@ -484,48 +484,48 @@ impl DartGenerator {
 
             $list_name $(format!("create{}", list_name))() {
                 final ffi.Pointer<ffi.Void> list_ptr = ffi.Pointer.fromAddress($(format!("_ffiList{}Create", ty))());
-                final list_box = _Box(this, list_ptr, $(format!("\"drop_box_{}\"", list_name)));
+                final list_box = _Box(this, list_ptr, $[str](drop_box_$[const](list_name)));
                 return $list_name._(this, list_box);
             }
 
             late final $(format!("_ffiList{}CreatePtr", ty)) = _lookup<
                 ffi.NativeFunction<
-                    ffi.IntPtr Function()>>($(format!("\"__{}Create\"", list_name)));
+                    ffi.IntPtr Function()>>($[str](__$[const](list_name)Create));
 
             late final $(format!("_ffiList{}Create", ty)) = $(format!("_ffiList{}CreatePtr", ty)).asFunction<
                 int Function()>();
 
             late final $(format!("_ffiList{}LenPtr", ty)) = _lookup<
                 ffi.NativeFunction<
-                    ffi.Uint32 Function(ffi.IntPtr)>>($(format!("\"__{}Len\"", list_name)));
+                    ffi.Uint32 Function(ffi.IntPtr)>>($[str](__$[const](list_name)Len));
 
             late final $(format!("_ffiList{}Len", ty)) = $(format!("_ffiList{}LenPtr", ty)).asFunction<
                 int Function(int)>();
 
             late final $(format!("_ffiList{}ElementAtPtr", ty)) = _lookup<
                 ffi.NativeFunction<
-                    ffi.IntPtr Function(ffi.IntPtr, ffi.Uint32)>>($(format!("\"__{}ElementAt\"", list_name)));
+                    ffi.IntPtr Function(ffi.IntPtr, ffi.Uint32)>>($[str](__$[const](list_name)ElementAt));
 
             late final $(format!("_ffiList{}ElementAt", ty)) = $(format!("_ffiList{}ElementAtPtr", ty)).asFunction<
                 int Function(int, int)>();
 
             late final $(format!("_ffiList{}RemovePtr", ty)) = _lookup<
                 ffi.NativeFunction<
-                    ffi.IntPtr Function(ffi.IntPtr, ffi.Uint32)>>($(format!("\"__{}Remove\"", list_name)));
+                    ffi.IntPtr Function(ffi.IntPtr, ffi.Uint32)>>($[str](__$[const](list_name)Remove));
 
             late final $(format!("_ffiList{}Remove", ty)) = $(format!("_ffiList{}RemovePtr", ty)).asFunction<
                 int Function(int, int)>();
 
             late final $(format!("_ffiList{}AddPtr", ty)) = _lookup<
                 ffi.NativeFunction<
-                    ffi.Void Function(ffi.IntPtr, ffi.IntPtr)>>($(format!("\"__{}Add\"", list_name)));
+                    ffi.Void Function(ffi.IntPtr, ffi.IntPtr)>>($[str](__$[const](list_name)Add));
 
             late final $(format!("_ffiList{}Add", ty)) = $(format!("_ffiList{}AddPtr", ty)).asFunction<
                 void Function(int, int)>();
 
             late final $(format!("_ffiList{}InsertPtr", ty)) = _lookup<
                 ffi.NativeFunction<
-                    ffi.Void Function(ffi.IntPtr, ffi.Uint32, ffi.IntPtr)>>($(format!("\"__{}Insert\"", list_name)));
+                    ffi.Void Function(ffi.IntPtr, ffi.Uint32, ffi.IntPtr)>>($[str](__$[const](list_name)Insert));
 
             late final $(format!("_ffiList{}Insert", ty)) = $(format!("_ffiList{}InsertPtr", ty)).asFunction<
                 void Function(int, int, int)>();
@@ -565,7 +565,7 @@ impl DartGenerator {
                 $(static_literal("///")) Moves the element out of this list and returns it
                 $ty remove(int index) {
                     final address = _api.$(format!("_ffiList{}Remove", ty))(_box.borrow(), index);
-                    final reference = _Box(_api, ffi.Pointer.fromAddress(address), $("\"")$(format!("drop_box_{}", ty))$("\""));
+                    final reference = _Box(_api, ffi.Pointer.fromAddress(address), $[str](drop_box_$[const](ty)));
                     reference._finalizer = _api._registerFinalizer(reference);
                     return $ty._(_api, reference);
                 }
@@ -708,7 +708,7 @@ impl DartGenerator {
             }
             Instr::LiftObject(obj, box_, drop, out) => quote! {
                 final ffi.Pointer<ffi.Void> $(self.var(box_))_0 = ffi.Pointer.fromAddress($(self.var(box_)));
-                final $(self.var(box_))_1 = _Box($api, $(self.var(box_))_0, $("\"")$drop$("\""));
+                final $(self.var(box_))_1 = _Box($api, $(self.var(box_))_0, $[str]($[const](drop)));
                 $(self.var(box_))_1._finalizer = $api._registerFinalizer($(self.var(box_))_1);
                 final $(self.var(out)) = $obj._($api, $(self.var(box_))_1);
             },
@@ -826,19 +826,19 @@ impl DartGenerator {
             },
             Instr::LiftIter(box_, next, drop, out) => quote! {
                 final ffi.Pointer<ffi.Void> $(self.var(box_))_0 = ffi.Pointer.fromAddress($(self.var(box_)));
-                final $(self.var(box_))_1 = _Box($api, $(self.var(box_))_0, $("\"")$drop$("\""));
+                final $(self.var(box_))_1 = _Box($api, $(self.var(box_))_0, $[str]($[const](drop)));
                 $(self.var(box_))_1._finalizer = $api._registerFinalizer($(self.var(box_))_1);
                 final $(self.var(out)) = Iter._($(self.var(box_))_1, $api.$(format!("__{}", self.ident(next))));
             },
             Instr::LiftFuture(box_, poll, drop, out) => quote! {
                 final ffi.Pointer<ffi.Void> $(self.var(box_))_0 = ffi.Pointer.fromAddress($(self.var(box_)));
-                final $(self.var(box_))_1 = _Box($api, $(self.var(box_))_0, $("\"")$drop$("\""));
+                final $(self.var(box_))_1 = _Box($api, $(self.var(box_))_0, $[str]($[const](drop)));
                 $(self.var(box_))_1._finalizer = $api._registerFinalizer($(self.var(box_))_1);
                 final $(self.var(out)) = _nativeFuture($(self.var(box_))_1, $api.$(format!("__{}", self.ident(poll))));
             },
             Instr::LiftStream(box_, poll, drop, out) => quote! {
                 final ffi.Pointer<ffi.Void> $(self.var(box_))_0 = ffi.Pointer.fromAddress($(self.var(box_)));
-                final $(self.var(box_))_1 = _Box($api, $(self.var(box_))_0, $("\"")$drop$("\""));
+                final $(self.var(box_))_1 = _Box($api, $(self.var(box_))_0, $[str]($[const](drop)));
                 $(self.var(box_))_1._finalizer = $api._registerFinalizer($(self.var(box_))_1);
                 final $(self.var(out)) = _nativeStream($(self.var(box_))_1, $api.$(format!("__{}", self.ident(poll))));
             },
@@ -874,7 +874,7 @@ impl DartGenerator {
         let symbol_ptr = format!("_{}Ptr", self.ident(&func.symbol));
         quote! {
             late final $(&symbol_ptr) =
-                _lookup<ffi.NativeFunction<$native_ret Function($native_args)>>($("\"")$(&func.symbol)$("\""));
+                _lookup<ffi.NativeFunction<$native_ret Function($native_args)>>($[str]($[const](&func.symbol)));
 
             late final $(format!("_{}", self.ident(&func.symbol))) =
                 $symbol_ptr.asFunction<$wrapped_ret Function($wrapped_args)>();
@@ -969,7 +969,7 @@ impl DartGenerator {
     }
 
     fn generate_doc(&self, doc: &[String]) -> dart::Tokens {
-        quote!($(for line in doc => $(static_literal("\n///")) $line$(static_literal("\n"))))
+        quote!($(for line in doc => $['\n']$(static_literal("///")) $line$['\n']))
     }
 
     fn type_ident(&self, s: &str) -> String {
