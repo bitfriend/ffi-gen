@@ -1092,7 +1092,7 @@ pub mod test_runner {
         };
 
         let bin_tokens: genco::Tokens<genco::lang::Dart> = quote! {
-            #dart_tokens
+            $dart_tokens
 
             extension on List {
                 bool equals(List list) {
@@ -1108,7 +1108,7 @@ pub mod test_runner {
 
             void main() async {
                 final api = Api.load();
-                #dart
+                $dart
             }
         };
 

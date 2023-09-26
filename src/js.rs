@@ -870,7 +870,7 @@ pub mod test_runner {
         let library_file = NamedTempFile::new()?;
         let bin_tokens: genco::Tokens<genco::lang::JavaScript> = quote! {
             import assert from "assert";
-            #js_tokens
+            $js_tokens
 
             async function main() {
                 const api = new Api();
@@ -888,7 +888,7 @@ pub mod test_runner {
                         },
                     }
                 });
-                #js
+                $js
             }
             main();
         };

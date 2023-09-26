@@ -428,10 +428,10 @@ impl RustGenerator {
             pub extern "C" fn $(&ffi.symbol)($args) $ret {
                 panic_abort(move || {
                     $(for instr in &ffi.instr => $(self.instr(instr)))
-                    #return_
+                    $return_
                 })
             }
-            #return_struct
+            $return_struct
         }
     }
 
