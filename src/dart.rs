@@ -408,7 +408,7 @@ impl DartGenerator {
         quote!(
             late final $(&ptr_name) = _lookup<
                 ffi.NativeFunction<
-                    _EnumWrapper Function(ffi.IntPtr)>>($[str]($[const](symbol_name)));
+                    _EnumWrapper Function(ffi.IntPtr)>>($(quoted(symbol_name)));
 
             late final $(&func_name) = $(&ptr_name).asFunction<
                 _EnumWrapper Function(int)>();
@@ -443,7 +443,7 @@ impl DartGenerator {
                                     let inner_name = if let Type::Ident(name) = entry.inner.as_ref().unwrap() { name } else { unimplemented!("Enums can only wrap objects") };
                                     quote!(
                                         final ffi.Pointer<ffi.Void> innerPtr = ffi.Pointer.fromAddress(parts.inner);
-                                        final innerBox = _Box(this._api, innerPtr, $[str](drop_box_$[const](inner_name)));
+                                        final innerBox = _Box(this._api, innerPtr, $(quoted(format!("drop_box_{}", inner_name))));
                                         innerBox._finalizer = this._api._registerFinalizer(innerBox);
                                         this._inner = $(inner_name)._(this._api, innerBox);
                                     )
@@ -484,48 +484,48 @@ impl DartGenerator {
 
             $list_name $(format!("create{}", list_name))() {
                 final ffi.Pointer<ffi.Void> list_ptr = ffi.Pointer.fromAddress($(format!("_ffiList{}Create", ty))());
-                final list_box = _Box(this, list_ptr, $[str](drop_box_$[const](list_name)));
+                final list_box = _Box(this, list_ptr, $(quoted(format!("drop_box_{}", list_name))));
                 return $list_name._(this, list_box);
             }
 
             late final $(format!("_ffiList{}CreatePtr", ty)) = _lookup<
                 ffi.NativeFunction<
-                    ffi.IntPtr Function()>>($[str](__$[const](list_name)Create));
+                    ffi.IntPtr Function()>>($(quoted(format!("__{}Create", list_name))));
 
             late final $(format!("_ffiList{}Create", ty)) = $(format!("_ffiList{}CreatePtr", ty)).asFunction<
                 int Function()>();
 
             late final $(format!("_ffiList{}LenPtr", ty)) = _lookup<
                 ffi.NativeFunction<
-                    ffi.Uint32 Function(ffi.IntPtr)>>($[str](__$[const](list_name)Len));
+                    ffi.Uint32 Function(ffi.IntPtr)>>($(quoted(format!("__{}Len", list_name))));
 
             late final $(format!("_ffiList{}Len", ty)) = $(format!("_ffiList{}LenPtr", ty)).asFunction<
                 int Function(int)>();
 
             late final $(format!("_ffiList{}ElementAtPtr", ty)) = _lookup<
                 ffi.NativeFunction<
-                    ffi.IntPtr Function(ffi.IntPtr, ffi.Uint32)>>($[str](__$[const](list_name)ElementAt));
+                    ffi.IntPtr Function(ffi.IntPtr, ffi.Uint32)>>($(quoted(format!("__{}ElementAt", list_name))));
 
             late final $(format!("_ffiList{}ElementAt", ty)) = $(format!("_ffiList{}ElementAtPtr", ty)).asFunction<
                 int Function(int, int)>();
 
             late final $(format!("_ffiList{}RemovePtr", ty)) = _lookup<
                 ffi.NativeFunction<
-                    ffi.IntPtr Function(ffi.IntPtr, ffi.Uint32)>>($[str](__$[const](list_name)Remove));
+                    ffi.IntPtr Function(ffi.IntPtr, ffi.Uint32)>>($(quoted(format!("__{}Remove", list_name))));
 
             late final $(format!("_ffiList{}Remove", ty)) = $(format!("_ffiList{}RemovePtr", ty)).asFunction<
                 int Function(int, int)>();
 
             late final $(format!("_ffiList{}AddPtr", ty)) = _lookup<
                 ffi.NativeFunction<
-                    ffi.Void Function(ffi.IntPtr, ffi.IntPtr)>>($[str](__$[const](list_name)Add));
+                    ffi.Void Function(ffi.IntPtr, ffi.IntPtr)>>($(quoted(format!("__{}Add", list_name))));
 
             late final $(format!("_ffiList{}Add", ty)) = $(format!("_ffiList{}AddPtr", ty)).asFunction<
                 void Function(int, int)>();
 
             late final $(format!("_ffiList{}InsertPtr", ty)) = _lookup<
                 ffi.NativeFunction<
-                    ffi.Void Function(ffi.IntPtr, ffi.Uint32, ffi.IntPtr)>>($[str](__$[const](list_name)Insert));
+                    ffi.Void Function(ffi.IntPtr, ffi.Uint32, ffi.IntPtr)>>($(quoted(format!("__{}Insert", list_name))));
 
             late final $(format!("_ffiList{}Insert", ty)) = $(format!("_ffiList{}InsertPtr", ty)).asFunction<
                 void Function(int, int, int)>();
@@ -565,7 +565,7 @@ impl DartGenerator {
                 $(static_literal("///")) Moves the element out of this list and returns it
                 $ty remove(int index) {
                     final address = _api.$(format!("_ffiList{}Remove", ty))(_box.borrow(), index);
-                    final reference = _Box(_api, ffi.Pointer.fromAddress(address), $[str](drop_box_$[const](ty)));
+                    final reference = _Box(_api, ffi.Pointer.fromAddress(address), $(quoted(format!("drop_box_{}", ty))));
                     reference._finalizer = _api._registerFinalizer(reference);
                     return $ty._(_api, reference);
                 }
@@ -708,7 +708,7 @@ impl DartGenerator {
             }
             Instr::LiftObject(obj, box_, drop, out) => quote! {
                 final ffi.Pointer<ffi.Void> $(self.var(box_))_0 = ffi.Pointer.fromAddress($(self.var(box_)));
-                final $(self.var(box_))_1 = _Box($api, $(self.var(box_))_0, $[str]($[const](drop)));
+                final $(self.var(box_))_1 = _Box($api, $(self.var(box_))_0, $(quoted(drop)));
                 $(self.var(box_))_1._finalizer = $api._registerFinalizer($(self.var(box_))_1);
                 final $(self.var(out)) = $obj._($api, $(self.var(box_))_1);
             },
@@ -826,19 +826,19 @@ impl DartGenerator {
             },
             Instr::LiftIter(box_, next, drop, out) => quote! {
                 final ffi.Pointer<ffi.Void> $(self.var(box_))_0 = ffi.Pointer.fromAddress($(self.var(box_)));
-                final $(self.var(box_))_1 = _Box($api, $(self.var(box_))_0, $[str]($[const](drop)));
+                final $(self.var(box_))_1 = _Box($api, $(self.var(box_))_0, $(quoted(drop)));
                 $(self.var(box_))_1._finalizer = $api._registerFinalizer($(self.var(box_))_1);
                 final $(self.var(out)) = Iter._($(self.var(box_))_1, $api.$(format!("__{}", self.ident(next))));
             },
             Instr::LiftFuture(box_, poll, drop, out) => quote! {
                 final ffi.Pointer<ffi.Void> $(self.var(box_))_0 = ffi.Pointer.fromAddress($(self.var(box_)));
-                final $(self.var(box_))_1 = _Box($api, $(self.var(box_))_0, $[str]($[const](drop)));
+                final $(self.var(box_))_1 = _Box($api, $(self.var(box_))_0, $(quoted(drop)));
                 $(self.var(box_))_1._finalizer = $api._registerFinalizer($(self.var(box_))_1);
                 final $(self.var(out)) = _nativeFuture($(self.var(box_))_1, $api.$(format!("__{}", self.ident(poll))));
             },
             Instr::LiftStream(box_, poll, drop, out) => quote! {
                 final ffi.Pointer<ffi.Void> $(self.var(box_))_0 = ffi.Pointer.fromAddress($(self.var(box_)));
-                final $(self.var(box_))_1 = _Box($api, $(self.var(box_))_0, $[str]($[const](drop)));
+                final $(self.var(box_))_1 = _Box($api, $(self.var(box_))_0, $(quoted(drop)));
                 $(self.var(box_))_1._finalizer = $api._registerFinalizer($(self.var(box_))_1);
                 final $(self.var(out)) = _nativeStream($(self.var(box_))_1, $api.$(format!("__{}", self.ident(poll))));
             },
@@ -874,7 +874,7 @@ impl DartGenerator {
         let symbol_ptr = format!("_{}Ptr", self.ident(&func.symbol));
         quote! {
             late final $(&symbol_ptr) =
-                _lookup<ffi.NativeFunction<$native_ret Function($native_args)>>($[str]($[const](&func.symbol)));
+                _lookup<ffi.NativeFunction<$native_ret Function($native_args)>>($(quoted(&func.symbol)));
 
             late final $(format!("_{}", self.ident(&func.symbol))) =
                 $symbol_ptr.asFunction<$wrapped_ret Function($wrapped_args)>();
