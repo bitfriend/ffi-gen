@@ -436,7 +436,7 @@ impl DartGenerator {
                     final parts = this._api.$(&destructure_function_name)(this._box.borrow());
                     switch (parts.tag) {
                         $(for entry in e.entries.iter() => case $({ destructure_switch_index += 1; destructure_switch_index }):$['\n']
-                            this._tag = $(&enum_tag_name).$(&entry.name);$['\n']
+                            this._tag = $(&enum_tag_name).$(&entry.name);
                             // this._box.move();
                             $(if entry.inner.is_some() {
                                 $({
@@ -449,7 +449,7 @@ impl DartGenerator {
                                     )
                                 })
                             } else {})
-                            break;$['\n']
+                            break;
                         )
                         default:$['\n']
                             throw new StateError($(format!("\"Destructuring enum gave back an invalid tag: ${{parts.tag}}\"")));
