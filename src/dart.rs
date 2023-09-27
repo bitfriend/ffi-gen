@@ -422,7 +422,7 @@ impl DartGenerator {
         let mut destructure_switch_index = -1;
         quote!(
             enum $(&enum_tag_name) {
-                $(for entry in e.entries.iter() => $(&entry.name),$['\n'])
+                $(for entry in e.entries.iter() => $(format!("{},\n", &entry.name)))
             }
 
             class $(&e.ident) {
