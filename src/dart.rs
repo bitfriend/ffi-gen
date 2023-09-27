@@ -969,7 +969,7 @@ impl DartGenerator {
     }
 
     fn generate_doc(&self, doc: &[String]) -> dart::Tokens {
-        quote!($(for line in doc => $(static_literal("///")) $[str]($[const](line))))
+        quote!($['\n']$(for line in doc => $(format!("/// {}", line))))
     }
 
     fn type_ident(&self, s: &str) -> String {
