@@ -968,8 +968,8 @@ impl DartGenerator {
         }
     }
 
-    fn generate_doc(&self, doc: &[String]) -> dart::Tokens {
-        quote!($(for line in doc => $(format!("/// {}\n", line))))
+    fn generate_doc(&self, doc: &[String]) -> Vec<dart::Tokens> {
+        doc.iter().map(|line| quote!($(format!("/// {}", line)))).collect()
     }
 
     fn type_ident(&self, s: &str) -> String {
