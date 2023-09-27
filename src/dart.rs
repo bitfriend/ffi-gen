@@ -308,7 +308,7 @@ impl DartGenerator {
                     if (Platform.isAndroid) name = $(quoted(format!("lib{}.so", &self.cdylib_name)));
                     if (Platform.isMacOS) name = $(quoted(format!("lib{}.dylib", &self.cdylib_name)));
                     if (Platform.isIOS) name = "";
-                    if (Platform.isWindows) name = $(quoted(format!("lib{}.dll", &self.cdylib_name)));
+                    if (Platform.isWindows) name = $(quoted(format!("{}.dll", &self.cdylib_name)));
                     if (name == null) {
                         throw UnsupportedError("This platform is not supported.");
                     }
