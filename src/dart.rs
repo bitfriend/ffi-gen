@@ -969,7 +969,17 @@ impl DartGenerator {
     }
 
     fn generate_doc(&self, doc: &[String]) -> Vec<dart::Tokens> {
-        doc.iter().map(|line| quote!($(format!("/// {}", line)))).collect()
+        doc
+            .iter()
+            .enumerate()
+            .map(|(index, line)| {
+                if index < doc.len() - 1 {
+                    quote!($(format!("/// {}\n", line)))
+                } else {
+                    quote!($(format!("/// {}", line)))
+                }
+            })
+            .collect()
     }
 
     fn type_ident(&self, s: &str) -> String {
