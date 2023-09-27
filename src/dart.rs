@@ -304,11 +304,11 @@ impl DartGenerator {
                 $(static_literal("///")) The library is loaded based on platform conventions.
                 factory Api.load() {
                     String? name;
-                    if (Platform.isLinux) name = $[str](lib$[const](&self.cdylib_name).so);
-                    if (Platform.isAndroid) name = $[str](lib$[const](&self.cdylib_name).so);
-                    if (Platform.isMacOS) name = $[str](lib$[const](&self.cdylib_name).dylib);
+                    if (Platform.isLinux) name = $(format!("lib{}.so", &self.cdylib_name));
+                    if (Platform.isAndroid) name = $(format!("lib{}.so", &self.cdylib_name));
+                    if (Platform.isMacOS) name = $(format!("lib{}.dylib", &self.cdylib_name));
                     if (Platform.isIOS) name = "";
-                    if (Platform.isWindows) name = $[str]($[const](&self.cdylib_name).dll);
+                    if (Platform.isWindows) name = $(format!("lib{}.dll", &self.cdylib_name));
                     if (name == null) {
                         throw UnsupportedError("This platform is not supported.");
                     }
