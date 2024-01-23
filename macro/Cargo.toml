@@ -11,6 +11,6 @@ proc-macro = true
 
 [dependencies]
 ffi-gen = { path = "../" }
-proc-macro2 = "1.0.67"
+proc-macro2 = "1.0.78"
 quote = "1.0.10"
 syn = "1.0.82"
