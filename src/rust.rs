@@ -210,13 +210,16 @@ impl RustGenerator {
 
             fn ffi_waker(_post_cobject: isize, port: i64) -> Waker {
                 waker_fn(move || unsafe {
-                    if cfg!(target_family = "wasm") {
+                    #[cfg(target_family = "wasm")]
+                    {
                         $(wasm_bindgen)
                         extern "C" {
                             fn __notifier_callback(idx: i32);
                         }
                         __notifier_callback(port as _);
-                    } else {
+                    }
+                    #[cfg(not(target_family = "wasm"))]
+                    {
                         let post_cobject: extern "C" fn(i64, *const core::ffi::c_void) =
                             core::mem::transmute(_post_cobject);
                         let obj: i32 = 0;
