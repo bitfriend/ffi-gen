@@ -1073,9 +1073,7 @@ pub mod test_runner {
     use crate::{Abi, RustGenerator};
     use anyhow::Result;
     use std::io::Write;
-    use std::path::PathBuf;
-    use std::str::FromStr;
-    use tempfile::NamedTempFile;
+    use tempfile::{NamedTempFile, TempDir};
     use trybuild::TestCases;
 
     pub fn compile_pass(iface: &str, rust: rust::Tokens, dart: dart::Tokens) -> Result<()> {
@@ -1122,7 +1120,7 @@ pub mod test_runner {
             }
         };
 
-        let library_dir = PathBuf::from_str("/tmp").unwrap();
+        let library_dir = TempDir::new()?.into_path();
         let library_file = library_dir.join("libcompile_pass.so");
         dart_file.write_all(
             format!(
