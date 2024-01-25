@@ -629,7 +629,8 @@ impl DartGenerator {
             _ => self.ident(&func.name),
         };
         let args: genco::Tokens<genco::lang::Dart> = quote!($(for (name, ty) in &ffi.abi_args => $(self.generate_type(ty)) $(self.ident(name)),));
-        let body: genco::Tokens<genco::lang::Dart> = quote!($(for instr in &ffi.instr => $(self.generate_instr(api, instr))));
+        let body: genco::Tokens<genco::lang::Dart> =
+            quote!($(for instr in &ffi.instr => $(self.generate_instr(api, instr))));
         let ret = if let Some(ret) = ffi.abi_ret.as_ref() {
             self.generate_type(ret)
         } else {
@@ -969,8 +970,7 @@ impl DartGenerator {
     }
 
     fn generate_doc(&self, doc: &[String]) -> Vec<dart::Tokens> {
-        doc
-            .iter()
+        doc.iter()
             .enumerate()
             .map(|(index, line)| {
                 if index < doc.len() - 1 {

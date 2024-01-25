@@ -517,8 +517,10 @@ impl JsGenerator {
             | &FunctionType::NextIter(_, _) => &ffi.symbol,
             _ => &func.name,
         });
-        let args: genco::Tokens<genco::lang::JavaScript> = quote!($(for (name, _) in &ffi.abi_args => $(self.ident(name)),));
-        let body: genco::Tokens<genco::lang::JavaScript> = quote!($(for instr in &ffi.instr => $(self.generate_instr(&api, instr))));
+        let args: genco::Tokens<genco::lang::JavaScript> =
+            quote!($(for (name, _) in &ffi.abi_args => $(self.ident(name)),));
+        let body: genco::Tokens<genco::lang::JavaScript> =
+            quote!($(for instr in &ffi.instr => $(self.generate_instr(&api, instr))));
         match &func.ty {
             FunctionType::Constructor(_) => quote! {
                 static $(self.ident(&func.name))(api, $args) {

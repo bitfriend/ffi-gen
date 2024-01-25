@@ -406,7 +406,8 @@ impl RustGenerator {
 
     fn generate_function(&self, func: &AbiFunction) -> rust::Tokens {
         let ffi = self.abi.export(func);
-        let args: genco::Tokens<genco::lang::Rust> = quote!($(for var in &ffi.ffi_args => $(self.var(var)): $(self.ty(&var.ty)),));
+        let args: genco::Tokens<genco::lang::Rust> =
+            quote!($(for var in &ffi.ffi_args => $(self.var(var)): $(self.ty(&var.ty)),));
         let ret: genco::Tokens<genco::lang::Rust> = match &ffi.ffi_ret {
             Return::Void => quote!(),
             Return::Num(var) => quote!(-> $(self.ty(&var.ty))),
@@ -462,7 +463,8 @@ impl RustGenerator {
 
     fn generate_iterator(&self, iter: &AbiIter) -> rust::Tokens {
         let destructor_name = format!("{}_iter_drop", &iter.symbol);
-        let destructor_type: genco::Tokens<genco::lang::Rust> = quote!(FfiIter<$(self.ty(&iter.ty))>);
+        let destructor_type: genco::Tokens<genco::lang::Rust> =
+            quote!(FfiIter<$(self.ty(&iter.ty))>);
         quote! {
             $(self.generate_function(&iter.next()))
             $(self.generate_destructor(&destructor_name, destructor_type))
@@ -471,7 +473,8 @@ impl RustGenerator {
 
     fn generate_future(&self, fut: &AbiFuture) -> rust::Tokens {
         let destructor_name = format!("{}_future_drop", &fut.symbol);
-        let destructor_type: genco::Tokens<genco::lang::Rust> = quote!(FfiFuture<$(self.ty(&fut.ty))>);
+        let destructor_type: genco::Tokens<genco::lang::Rust> =
+            quote!(FfiFuture<$(self.ty(&fut.ty))>);
         quote! {
             $(self.generate_function(&fut.poll()))
             $(self.generate_destructor(&destructor_name, destructor_type))
@@ -480,7 +483,8 @@ impl RustGenerator {
 
     fn generate_stream(&self, stream: &AbiStream) -> rust::Tokens {
         let destructor_name = format!("{}_stream_drop", &stream.symbol);
-        let destructor_type: genco::Tokens<genco::lang::Rust> = quote!(FfiStream<$(self.ty(&stream.ty))>);
+        let destructor_type: genco::Tokens<genco::lang::Rust> =
+            quote!(FfiStream<$(self.ty(&stream.ty))>);
         quote! {
             $(self.generate_function(&stream.poll()))
             $(self.generate_destructor(&destructor_name, destructor_type))
@@ -693,7 +697,8 @@ impl RustGenerator {
                         quote!($name)
                     }
                 };
-                let args: genco::Tokens<genco::lang::Rust> = quote!($(for arg in args => $(self.var(arg)),));
+                let args: genco::Tokens<genco::lang::Rust> =
+                    quote!($(for arg in args => $(self.var(arg)),));
                 if let Some(ret) = ret {
                     quote!(let $(self.var(ret)) = $invoke($args);)
                 } else {
