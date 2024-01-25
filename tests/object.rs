@@ -572,7 +572,7 @@ compile_pass_no_js! {
     ),
     (),
     (
-        final path = #_(#(crate::canonical_path("example/dart/image.jpg".to_string())));
+        final path = $(genco::tokens::quoted(crate::canonical_path("example/dart/image.jpg".to_string())));
         final img1 = await new File(path).readAsBytes();
         final img2 = await api.readFile(path);
         assert(img1.equals(img2.asTypedList()));
