@@ -113,7 +113,7 @@ fn s() -> String {
 }
 
 fn ss() -> Vec<String> {
-    vec!["first", "second", "third"]
+    ["first", "second", "third"]
         .iter()
         .map(|s| s.to_string())
         .collect()
