@@ -15,7 +15,7 @@ test_runner = ["tempfile", "trybuild"]
 
 [dependencies]
 anyhow = "1.0.79"
-genco = { git = "https://github.com/udoprog/genco", branch = "proc-macro-span" }
+genco = "0.17.8"
 heck = "0.4.1"
 pest = "2.7.6"
 pest_derive = "2.7.6"
