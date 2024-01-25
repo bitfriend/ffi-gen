@@ -754,12 +754,13 @@ impl WasmMultiValueShim {
     }
 
     #[cfg(feature = "test_runner")]
+    #[allow(unused_variables)]
     pub fn generate(&self, path: &str, iface: Interface) -> rust::Tokens {
         let args = self.generate_args(iface);
         if !args.is_empty() {
             quote! {
                 let ret = Command::new("multi-value-reverse-polyfill")
-                    .arg(path)
+                    .arg($(quoted(path)))
                     $(for arg in args => .arg($(quoted(arg))))
                     .status()
                     .unwrap()
@@ -769,8 +770,8 @@ impl WasmMultiValueShim {
         } else {
             quote! {
                 let ret = Command::new("cp")
-                    .arg(path)
-                    .arg(path.multivalue.wasm)
+                    .arg($(quoted(path)))
+                    .arg($(quoted(format!("{}.multivalue.wasm", path))))
                     .status()
                     .unwrap()
                     .success();
@@ -849,9 +850,9 @@ pub mod test_runner {
         let js_gen = JsGenerator::default();
         let js_tokens = js_gen.generate(iface.clone());
 
-        let library_tokens: genco::Tokens<genco::lang::JavaScript> = quote! {
-            #rust_tokens
-            #rust
+        let library_tokens: genco::Tokens<genco::lang::Rust> = quote! {
+            $rust_tokens
+            $rust
 
             extern "C" {
                 fn __panic(ptr: isize, len: usize);
@@ -924,7 +925,7 @@ pub mod test_runner {
                     .success();
                 assert!(ret);
                 //println!("{}", #_($bin));
-                #wasm_multi_value
+                $wasm_multi_value
                 let ret = Command::new("node")
                     .arg("--expose-gc")
                     .arg("--unhandled-rejections=strict")

@@ -786,11 +786,11 @@ pub mod test_runner {
         let gen = RustGenerator::new(Abi::native());
         let gen_tokens = gen.generate(iface);
         let tokens: genco::Tokens<genco::lang::Rust> = quote! {
-            #gen_tokens
-            #api
+            $gen_tokens
+            $api
             fn main() {
                 use api::*;
-                #test
+                $test
             }
         };
         let res = tokens.to_file_string()?;

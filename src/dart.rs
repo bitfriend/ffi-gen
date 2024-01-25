@@ -1096,9 +1096,9 @@ pub mod test_runner {
         let dart_gen = DartGenerator::new("compile_pass".to_string(), "compile_pass".to_string());
         let dart_tokens = dart_gen.generate(iface);
 
-        let library_tokens: genco::Tokens<genco::lang::Dart> = quote! {
-            #rust_tokens
-            #rust
+        let library_tokens: genco::Tokens<genco::lang::Rust> = quote! {
+            $rust_tokens
+            $rust
         };
 
         let bin_tokens: genco::Tokens<genco::lang::Dart> = quote! {
