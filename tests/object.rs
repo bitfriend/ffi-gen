@@ -445,9 +445,9 @@ compile_pass_no_js! {
     ",
     (
         macro_rules! gen_counting_func {
-            ($ty:ident) => {
-                pub fn $ty(n: usize) -> api::FfiBuffer<$ty> {
-                    api::FfiBuffer::new((0..n).map(|n| n as $ty).collect())
+            ($$ty:ident) => {
+                pub fn $$ty(n: usize) -> api::FfiBuffer<$$ty> {
+                    api::FfiBuffer::new((0..n).map(|n| n as $$ty).collect())
                 }
             };
         }
