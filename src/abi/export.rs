@@ -34,12 +34,12 @@ impl Abi {
                 instr.push(Instr::LiftNum(arg, out));
             }
             AbiType::Isize => {
-                let arg = gen.gen_num(self.iptr());
+                let arg = gen.gen_num(NumType::IPtr);
                 ffi_args.push(arg.clone());
                 instr.push(Instr::LiftIsize(arg, out));
             }
             AbiType::Usize => {
-                let arg = gen.gen_num(self.uptr());
+                let arg = gen.gen_num(NumType::UPtr);
                 ffi_args.push(arg.clone());
                 instr.push(Instr::LiftUsize(arg, out));
             }
@@ -49,41 +49,41 @@ impl Abi {
                 instr.push(Instr::LiftBool(arg, out));
             }
             AbiType::RefStr => {
-                let ptr = gen.gen_num(self.iptr());
-                let len = gen.gen_num(self.uptr());
+                let ptr = gen.gen_num(NumType::IPtr);
+                let len = gen.gen_num(NumType::UPtr);
                 ffi_args.extend_from_slice(&[ptr.clone(), len.clone()]);
                 instr.push(Instr::LiftStr(ptr, len, out));
             }
             AbiType::String => {
-                let ptr = gen.gen_num(self.iptr());
-                let len = gen.gen_num(self.uptr());
-                let cap = gen.gen_num(self.uptr());
+                let ptr = gen.gen_num(NumType::IPtr);
+                let len = gen.gen_num(NumType::UPtr);
+                let cap = gen.gen_num(NumType::UPtr);
                 ffi_args.extend_from_slice(&[ptr.clone(), len.clone(), cap.clone()]);
                 instr.push(Instr::LiftString(ptr, len, cap, out));
             }
             AbiType::RefSlice(ty) => {
-                let ptr = gen.gen_num(self.iptr());
-                let len = gen.gen_num(self.uptr());
+                let ptr = gen.gen_num(NumType::IPtr);
+                let len = gen.gen_num(NumType::UPtr);
                 ffi_args.extend_from_slice(&[ptr.clone(), len.clone()]);
                 let ty = *ty;
                 instr.push(Instr::LiftSlice(ptr, len, out, ty));
             }
             AbiType::Vec(ty) => {
-                let ptr = gen.gen_num(self.iptr());
-                let len = gen.gen_num(self.uptr());
-                let cap = gen.gen_num(self.uptr());
+                let ptr = gen.gen_num(NumType::IPtr);
+                let len = gen.gen_num(NumType::UPtr);
+                let cap = gen.gen_num(NumType::UPtr);
                 ffi_args.extend_from_slice(&[ptr.clone(), len.clone(), cap.clone()]);
                 let ty = *ty;
                 instr.push(Instr::LiftVec(ptr, len, cap, out, ty));
             }
             AbiType::RefObject(object) => {
-                let ptr = gen.gen_num(self.iptr());
+                let ptr = gen.gen_num(NumType::IPtr);
                 ffi_args.push(ptr.clone());
                 let object = object.clone();
                 instr.push(Instr::LiftRefObject(ptr, out, object));
             }
             AbiType::Object(object) => {
-                let ptr = gen.gen_num(self.iptr());
+                let ptr = gen.gen_num(NumType::IPtr);
                 ffi_args.push(ptr.clone());
                 let object = object.clone();
                 instr.push(Instr::LiftObject(ptr, out, object));
@@ -98,37 +98,37 @@ impl Abi {
             }
             AbiType::Result(_) => todo!(),
             AbiType::RefIter(ty) => {
-                let ptr = gen.gen_num(self.iptr());
+                let ptr = gen.gen_num(NumType::IPtr);
                 ffi_args.push(ptr.clone());
                 let ty = (**ty).clone();
                 instr.push(Instr::LiftRefIter(ptr, out, ty));
             }
             AbiType::Iter(ty) => {
-                let ptr = gen.gen_num(self.iptr());
+                let ptr = gen.gen_num(NumType::IPtr);
                 ffi_args.push(ptr.clone());
                 let ty = (**ty).clone();
                 instr.push(Instr::LiftIter(ptr, out, ty));
             }
             AbiType::RefFuture(ty) => {
-                let ptr = gen.gen_num(self.iptr());
+                let ptr = gen.gen_num(NumType::IPtr);
                 ffi_args.push(ptr.clone());
                 let ty = (**ty).clone();
                 instr.push(Instr::LiftRefFuture(ptr, out, ty));
             }
             AbiType::Future(ty) => {
-                let ptr = gen.gen_num(self.iptr());
+                let ptr = gen.gen_num(NumType::IPtr);
                 ffi_args.push(ptr.clone());
                 let ty = (**ty).clone();
                 instr.push(Instr::LiftFuture(ptr, out, ty));
             }
             AbiType::RefStream(ty) => {
-                let ptr = gen.gen_num(self.iptr());
+                let ptr = gen.gen_num(NumType::IPtr);
                 ffi_args.push(ptr.clone());
                 let ty = (**ty).clone();
                 instr.push(Instr::LiftRefStream(ptr, out, ty));
             }
             AbiType::Stream(ty) => {
-                let ptr = gen.gen_num(self.iptr());
+                let ptr = gen.gen_num(NumType::IPtr);
                 ffi_args.push(ptr.clone());
                 let ty = (**ty).clone();
                 instr.push(Instr::LiftStream(ptr, out, ty));
@@ -144,7 +144,7 @@ impl Abi {
             }
             AbiType::Buffer(_) => unimplemented!("\"buffer\" can only be used as return value"),
             AbiType::List(ty) => {
-                let ptr = gen.gen_num(self.iptr());
+                let ptr = gen.gen_num(NumType::IPtr);
                 ffi_args.push(ptr.clone());
                 instr.push(Instr::LiftRefObject(
                     ptr,
@@ -166,8 +166,8 @@ impl Abi {
             AbiType::Num(num)
                 if matches!((self, num), (Abi::Wasm32, NumType::U64 | NumType::I64)) =>
             {
-                let low = gen.gen_num(self.uptr());
-                let high = gen.gen_num(self.uptr());
+                let low = gen.gen_num(NumType::UPtr);
+                let high = gen.gen_num(NumType::UPtr);
                 ffi_rets.extend_from_slice(&[low.clone(), high.clone()]);
                 let num_type = *num;
                 instr.push(Instr::LowerNumAsU32Tuple(ret, low, high, num_type));
@@ -178,12 +178,12 @@ impl Abi {
                 instr.push(Instr::LowerNum(ret, out));
             }
             AbiType::Isize => {
-                let out = gen.gen_num(self.iptr());
+                let out = gen.gen_num(NumType::IPtr);
                 ffi_rets.push(out.clone());
                 instr.push(Instr::LowerIsize(ret, out));
             }
             AbiType::Usize => {
-                let out = gen.gen_num(self.uptr());
+                let out = gen.gen_num(NumType::UPtr);
                 ffi_rets.push(out.clone());
                 instr.push(Instr::LowerUsize(ret, out));
             }
@@ -193,40 +193,40 @@ impl Abi {
                 instr.push(Instr::LowerBool(ret, out));
             }
             AbiType::RefStr => {
-                let ptr = gen.gen_num(self.iptr());
-                let len = gen.gen_num(self.uptr());
+                let ptr = gen.gen_num(NumType::IPtr);
+                let len = gen.gen_num(NumType::UPtr);
                 ffi_rets.extend_from_slice(&[ptr.clone(), len.clone()]);
                 instr.push(Instr::LowerStr(ret, ptr, len));
             }
             AbiType::String => {
-                let ptr = gen.gen_num(self.iptr());
-                let len = gen.gen_num(self.uptr());
-                let cap = gen.gen_num(self.uptr());
+                let ptr = gen.gen_num(NumType::IPtr);
+                let len = gen.gen_num(NumType::UPtr);
+                let cap = gen.gen_num(NumType::UPtr);
                 ffi_rets.extend_from_slice(&[ptr.clone(), len.clone(), cap.clone()]);
                 instr.push(Instr::LowerString(ret, ptr, len, cap));
             }
             AbiType::RefSlice(ty) => {
-                let ptr = gen.gen_num(self.iptr());
-                let len = gen.gen_num(self.uptr());
+                let ptr = gen.gen_num(NumType::IPtr);
+                let len = gen.gen_num(NumType::UPtr);
                 let ty = *ty;
                 ffi_rets.extend_from_slice(&[ptr.clone(), len.clone()]);
                 instr.push(Instr::LowerSlice(ret, ptr, len, ty));
             }
             AbiType::Vec(ty) => {
-                let ptr = gen.gen_num(self.iptr());
-                let len = gen.gen_num(self.uptr());
-                let cap = gen.gen_num(self.uptr());
+                let ptr = gen.gen_num(NumType::IPtr);
+                let len = gen.gen_num(NumType::UPtr);
+                let cap = gen.gen_num(NumType::UPtr);
                 let ty = *ty;
                 ffi_rets.extend_from_slice(&[ptr.clone(), len.clone(), cap.clone()]);
                 instr.push(Instr::LowerVec(ret, ptr, len, cap, ty));
             }
             AbiType::RefObject(_object) => {
-                let ptr = gen.gen_num(self.iptr());
+                let ptr = gen.gen_num(NumType::IPtr);
                 ffi_rets.push(ptr.clone());
                 instr.push(Instr::LowerRefObject(ret, ptr));
             }
             AbiType::Object(_object) => {
-                let ptr = gen.gen_num(self.iptr());
+                let ptr = gen.gen_num(NumType::IPtr);
                 ffi_rets.push(ptr.clone());
                 instr.push(Instr::LowerObject(ret, ptr));
             }
@@ -250,37 +250,37 @@ impl Abi {
                 instr.push(Instr::LowerResult(ret, var, ok, ok_instr, err, err_instr));
             }
             AbiType::RefIter(ty) => {
-                let ptr = gen.gen_num(self.iptr());
+                let ptr = gen.gen_num(NumType::IPtr);
                 ffi_rets.push(ptr.clone());
                 let ty = (**ty).clone();
                 instr.push(Instr::LowerRefIter(ret, ptr, ty));
             }
             AbiType::Iter(ty) => {
-                let ptr = gen.gen_num(self.iptr());
+                let ptr = gen.gen_num(NumType::IPtr);
                 ffi_rets.push(ptr.clone());
                 let ty = (**ty).clone();
                 instr.push(Instr::LowerIter(ret, ptr, ty));
             }
             AbiType::RefFuture(ty) => {
-                let ptr = gen.gen_num(self.iptr());
+                let ptr = gen.gen_num(NumType::IPtr);
                 ffi_rets.push(ptr.clone());
                 let ty = (**ty).clone();
                 instr.push(Instr::LowerRefFuture(ret, ptr, ty));
             }
             AbiType::Future(ty) => {
-                let ptr = gen.gen_num(self.iptr());
+                let ptr = gen.gen_num(NumType::IPtr);
                 ffi_rets.push(ptr.clone());
                 let ty = (**ty).clone();
                 instr.push(Instr::LowerFuture(ret, ptr, ty));
             }
             AbiType::RefStream(ty) => {
-                let ptr = gen.gen_num(self.iptr());
+                let ptr = gen.gen_num(NumType::IPtr);
                 ffi_rets.push(ptr.clone());
                 let ty = (**ty).clone();
                 instr.push(Instr::LowerRefStream(ret, ptr, ty));
             }
             AbiType::Stream(ty) => {
-                let ptr = gen.gen_num(self.iptr());
+                let ptr = gen.gen_num(NumType::IPtr);
                 ffi_rets.push(ptr.clone());
                 let ty = (**ty).clone();
                 instr.push(Instr::LowerStream(ret, ptr, ty));
@@ -297,18 +297,18 @@ impl Abi {
                 instr.extend(instr_inner);
             }
             AbiType::Buffer(_ty) => {
-                let ptr = gen.gen_num(self.iptr());
+                let ptr = gen.gen_num(NumType::IPtr);
                 ffi_rets.push(ptr.clone());
                 instr.push(Instr::LowerObject(ret, ptr));
             }
             AbiType::List(ty) => {
                 instr.push(Instr::AssertType(ret.clone(), format!("Vec<{}>", ty)));
-                let ptr = gen.gen_num(self.iptr());
+                let ptr = gen.gen_num(NumType::IPtr);
                 ffi_rets.push(ptr.clone());
                 instr.push(Instr::LowerObject(ret, ptr));
             }
             AbiType::RefEnum(_ty) => {
-                let ptr = gen.gen_num(self.iptr());
+                let ptr = gen.gen_num(NumType::IPtr);
                 ffi_rets.push(ptr.clone());
                 instr.push(Instr::LowerObject(ret.clone(), ptr))
             }
@@ -324,28 +324,28 @@ impl Abi {
         let self_ = match &func.ty {
             FunctionType::Method(object) => {
                 let out = gen.gen(AbiType::RefObject(object.clone()));
-                let ptr = gen.gen_num(self.iptr());
+                let ptr = gen.gen_num(NumType::IPtr);
                 ffi_args.push(ptr.clone());
                 instr.push(Instr::LiftRefObject(ptr, out.clone(), object.clone()));
                 Some(out)
             }
             FunctionType::NextIter(_, ty) => {
                 let out = gen.gen(AbiType::RefIter(Box::new(ty.clone())));
-                let ptr = gen.gen_num(self.iptr());
+                let ptr = gen.gen_num(NumType::IPtr);
                 ffi_args.push(ptr.clone());
                 instr.push(Instr::LiftRefIter(ptr, out.clone(), ty.clone()));
                 Some(out)
             }
             FunctionType::PollFuture(_, ty) => {
                 let out = gen.gen(AbiType::RefFuture(Box::new(ty.clone())));
-                let ptr = gen.gen_num(self.iptr());
+                let ptr = gen.gen_num(NumType::IPtr);
                 ffi_args.push(ptr.clone());
                 instr.push(Instr::LiftRefFuture(ptr, out.clone(), ty.clone()));
                 Some(out)
             }
             FunctionType::PollStream(_, ty) => {
                 let out = gen.gen(AbiType::RefStream(Box::new(ty.clone())));
-                let ptr = gen.gen_num(self.iptr());
+                let ptr = gen.gen_num(NumType::IPtr);
                 ffi_args.push(ptr.clone());
                 instr.push(Instr::LiftRefStream(ptr, out.clone(), ty.clone()));
                 Some(out)

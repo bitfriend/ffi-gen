@@ -40,6 +40,15 @@ impl RustGenerator {
 
             type FfiString = String;
 
+            #[cfg(target_pointer_width = "32")]
+            type IPtr = i32;
+            #[cfg(target_pointer_width = "32")]
+            type UPtr = i32;
+            #[cfg(target_pointer_width = "64")]
+            type IPtr = i64;
+            #[cfg(target_pointer_width = "64")]
+            type UPtr = i64;
+
             /// Try to execute some function, catching any panics and aborting to make sure Rust
             /// doesn't unwind across the FFI boundary.
             pub fn panic_abort<R>(func: impl FnOnce() -> R + std::panic::UnwindSafe) -> R {
@@ -105,22 +114,22 @@ impl RustGenerator {
             }
 
             #[no_mangle]
-            pub unsafe extern "C" fn __ffi_buffer_address(ptr: *mut c_void) -> *mut c_void {
+            pub unsafe extern "C" fn __ffi_buffer_address(ptr: *mut c_void) -> UPtr {
                 let buffer = &*(ptr as *mut FfiBuffer<u8>);
                 buffer.addr as _
             }
 
             #[no_mangle]
-            pub unsafe extern "C" fn __ffi_buffer_size(ptr: *mut c_void) -> u64 {
+            pub unsafe extern "C" fn __ffi_buffer_size(ptr: *mut c_void) -> UPtr {
                 let buffer = &*(ptr as *mut FfiBuffer<u8>);
                 buffer.size as _
             }
 
             #[repr(C)]
             pub struct _FfiStringParts {
-                ptr: i64,
-                len: u64,
-                capacity: u64,
+                ptr: IPtr,
+                len: UPtr,
+                capacity: UPtr,
             }
 
             #[no_mangle]
@@ -135,14 +144,14 @@ impl RustGenerator {
             }
 
             #[no_mangle]
-            pub extern "C" fn drop_box_FfiBuffer(_: i64, boxed: i64) {
+            pub extern "C" fn drop_box_FfiBuffer(_: IPtr, boxed: IPtr) {
                 panic_abort(move || {
                     unsafe { Box::<FfiBuffer<u8>>::from_raw(boxed as *mut _) };
                 });
             }
 
             #[no_mangle]
-            pub extern "C" fn drop_box_Leak(_: i64, boxed: i64) {
+            pub extern "C" fn drop_box_Leak(_: IPtr, boxed: IPtr) {
             }
 
             #[repr(C)]
@@ -326,7 +335,7 @@ impl RustGenerator {
             }
 
             #[no_mangle]
-            pub extern "C" fn $(&drop_function_name)(_: i64, boxed: i64) {
+            pub extern "C" fn $(&drop_function_name)(_: IPtr, boxed: IPtr) {
                 panic_abort(move || {
                     unsafe { Box::<$(&e.ident)>::from_raw(boxed as *mut _) };
                 });
@@ -348,7 +357,7 @@ impl RustGenerator {
             }
 
             #[no_mangle]
-            pub extern "C" fn $(format!("drop_box_{}", name))(_: i64, boxed: i64) {
+            pub extern "C" fn $(format!("drop_box_{}", name))(_: IPtr, boxed: IPtr) {
                 panic_abort(move || unsafe {
                     // Box::<Vec<$ty>>::from_raw(boxed as _);
                     // FIXME: we will just leak these for now
@@ -453,7 +462,7 @@ impl RustGenerator {
         // the first argument.
         quote! {
             #[no_mangle]
-            pub extern "C" fn $name(_: $(self.ffi_num_type(self.abi.iptr())), boxed: $(self.ffi_num_type(self.abi.iptr()))) {
+            pub extern "C" fn $name(_: IPtr, boxed: IPtr) {
                 panic_abort(move || {
                     unsafe { Box::<$ty>::from_raw(boxed as *mut _) };
                 });
@@ -757,6 +766,8 @@ impl RustGenerator {
             NumType::I64 => quote!(i64),
             NumType::F32 => quote!(f32),
             NumType::F64 => quote!(f64),
+            NumType::IPtr => quote!(isize),
+            NumType::UPtr => quote!(usize),
         }
     }
 
@@ -773,6 +784,8 @@ impl RustGenerator {
             NumType::I64 => quote!(i64),
             NumType::F32 => quote!(f32),
             NumType::F64 => quote!(f64),
+            NumType::IPtr => quote!(isize),
+            NumType::UPtr => quote!(usize),
         }
     }
 }

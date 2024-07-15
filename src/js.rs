@@ -188,6 +188,8 @@ impl TsGenerator {
                     | NumType::F32
                     | NumType::F64 => quote!(number),
                     NumType::U64 | NumType::I64 => quote!(BigInt),
+                    NumType::IPtr => todo!(),
+                    NumType::UPtr => todo!(),
                 },
                 AbiType::Isize | AbiType::Usize => quote!(number),
                 AbiType::Bool => quote!(boolean),
@@ -594,7 +596,7 @@ impl JsGenerator {
                     $(self.var(out_high)) = $(self.var(out_low))_1[1];
                 }
             }
-            Instr::LowerNum(in_, out, _num) => {
+            Instr::LowerNum(in_, out) => {
                 quote!($(self.var(out)) = $(self.var(in_));)
             }
             Instr::LiftNum(in_, out, _num) => {
@@ -728,6 +730,8 @@ impl JsGenerator {
             NumType::I64 => quote!(BigInt64Array),
             NumType::F32 => quote!(Float32Array),
             NumType::F64 => quote!(Float64Array),
+            NumType::IPtr => todo!(),
+            NumType::UPtr => todo!(),
         }
     }
 

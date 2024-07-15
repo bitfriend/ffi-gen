@@ -16,6 +16,8 @@ pub enum NumType {
     I64,
     F32,
     F64,
+    IPtr,
+    UPtr,
 }
 
 #[derive(Clone, Debug)]
@@ -46,10 +48,9 @@ pub enum AbiType {
 
 impl AbiType {
     pub fn num(&self) -> NumType {
-        if let Self::Num(num) = self {
-            *num
-        } else {
-            panic!()
+        match self {
+            Self::Num(num) => *num,
+            _ => todo!("{self:?} still missing"),
         }
     }
 }
@@ -219,20 +220,6 @@ impl Abi {
         return Abi::Native64;
     }
 
-    pub(crate) fn uptr(self) -> NumType {
-        match self {
-            Self::Native32 | Self::Wasm32 => NumType::U32,
-            Self::Native64 | Self::Wasm64 => NumType::U64,
-        }
-    }
-
-    pub(crate) fn iptr(self) -> NumType {
-        match self {
-            Self::Native32 | Self::Wasm32 => NumType::I32,
-            Self::Native64 | Self::Wasm64 => NumType::I64,
-        }
-    }
-
     /// Returns the size and alignment of a primitive type.
     pub(crate) fn layout(self, ty: NumType) -> (usize, usize) {
         let size = match ty {
@@ -240,6 +227,8 @@ impl Abi {
             NumType::U16 | NumType::I16 => 2,
             NumType::U32 | NumType::I32 | NumType::F32 => 4,
             NumType::U64 | NumType::I64 | NumType::F64 => 8,
+            NumType::IPtr => todo!(),
+            NumType::UPtr => todo!(),
         };
         let size = match self {
             Self::Native32 | Self::Native64 => size,
