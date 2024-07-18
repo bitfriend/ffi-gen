@@ -260,11 +260,11 @@ impl DartGenerator {
             }
 
             class _FfiStringParts extends ffi.Struct {
-                @ffi.Int64()
+                @ffi.IntPtr()
                 external int addr;
-                @ffi.Uint64()
+                @ffi.UintPtr()
                 external int len;
-                @ffi.Uint64()
+                @ffi.UintPtr()
                 external int capacity;
             }
 
@@ -365,14 +365,14 @@ impl DartGenerator {
 
                 late final _ffiBufferAddressPtr = _lookup<
                     ffi.NativeFunction<
-                        ffi.IntPtr Function(ffi.IntPtr)>>("__ffi_buffer_address");
+                        ffi.UintPtr Function(ffi.IntPtr)>>("__ffi_buffer_address");
 
                 late final _ffiBufferAddress = _ffiBufferAddressPtr.asFunction<
                     int Function(int)>();
 
                 late final _ffiBufferSizePtr = _lookup<
                     ffi.NativeFunction<
-                        ffi.Uint64 Function(ffi.IntPtr)>>("__ffi_buffer_size");
+                        ffi.UintPtr Function(ffi.IntPtr)>>("__ffi_buffer_size");
 
                 late final _ffiBufferSize = _ffiBufferSizePtr.asFunction<
                     int Function(int)>();
@@ -722,7 +722,7 @@ impl DartGenerator {
                         final $(self.var(var)) = $(self.var(ret)).$(format!("arg{}", idx));)
                 },
             },
-            Instr::LowerNum(in_, out, _num) => {
+            Instr::LowerNum(in_, out) => {
                 quote!($(self.var(out)) = $(self.var(in_));)
             }
             Instr::LiftNum(in_, out, _num) => {
@@ -931,6 +931,8 @@ impl DartGenerator {
             NumType::U64 => quote!(ffi.Uint64),
             NumType::F32 => quote!(ffi.Float),
             NumType::F64 => quote!(ffi.Double),
+            NumType::IPtr => quote!(ffi.IntPtr),
+            NumType::UPtr => quote!(ffi.UintPtr),
         }
     }
 
@@ -1189,5 +1191,7 @@ pub fn ffi_buffer_name_for(ty: NumType) -> &'static str {
         NumType::I64 => "FfiBufferInt64",
         NumType::F32 => "FfiBufferFloat32",
         NumType::F64 => "FfiBufferFloat64",
+        NumType::IPtr => todo!(),
+        NumType::UPtr => todo!(),
     }
 }
