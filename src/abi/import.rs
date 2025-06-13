@@ -250,8 +250,7 @@ impl Abi {
                 instr.push(Instr::LiftVec(ptr.clone(), len, out, *ty));
                 instr.push(Instr::Deallocate(ptr, cap, size, align));
             }
-            AbiType::RefObject(_) => todo!(),
-            AbiType::Object(obj) => {
+            AbiType::RefObject(obj) | AbiType::Object(obj) => {
                 let ptr = gen.gen_num(NumType::IPtr);
                 ffi_rets.push(ptr.clone());
                 let destructor = format!("drop_box_{}", obj);
